@@ -141,6 +141,13 @@ class ApiClient {
         return this.request<any>("/analysis/me");
     }
 
+    updateStudentProfile(data: any) {
+        return this.request<any>("/students/me", {
+            method: "PATCH",
+            body: JSON.stringify(data),
+        });
+    }
+
     // Mentor
     getMentorDashboard() {
         return this.request<any>("/mentor/dashboard");

@@ -301,7 +301,7 @@ const StudentDashboard = () => {
         >
           <h3 className="font-display font-semibold text-foreground mb-1">Coding Profiles</h3>
           <p className="text-xs text-muted-foreground mb-4">Your linked competitive programming accounts</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {codingProfiles.map((p: any) => {
               const colorMap: Record<string, { text: string; bg: string }> = {
                 LeetCode: { text: "text-amber-400", bg: "bg-amber-400/10" },
@@ -368,7 +368,7 @@ const StudentDashboard = () => {
         >
           <h3 className="font-display font-semibold text-foreground mb-1">Achievements</h3>
           <p className="text-xs text-muted-foreground mb-6">Your earned badges and milestones</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
             {badges.map((badge: any) => (
               <div
                 key={badge.label}

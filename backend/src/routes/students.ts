@@ -408,6 +408,45 @@ router.post("/me/coding-profiles/refresh", authenticateToken, requireRole("STUDE
     }
 });
 
+// PATCH /api/students/me — update personal/academic info
+router.patch("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthRequest, res: Response) => {
+    try {
+        const { name, enrollment, branch, section, semester, year, cgpa } = req.body;
+
+        const updateData: any = {};
+        if (enrollment !== undefined) updateData.enrollment = enrollment;
+        if (branch !== undefined) updateData.branch = branch;
+        if (section !== undefined) updateData.section = section;
+        if (semester !== undefined) updateData.semester = semester;
+        if (year !== undefined) updateData.year = year;
+        if (cgpa !== undefined) updateData.cgpa = Number(cgpa);
+
+        // Update User name if provided
+        if (name !== undefined) {
+            await prisma.user.update({
+                where: { id: req.user!.userId },
+                data: { name },
+            });
+        }
+
+        // Update Student data
+        if (Object.keys(updateData).length > 0) {
+            await prisma.student.update({
+                where: { userId: req.user!.userId },
+                data: updateData,
+            });
+        }
+
+        return res.json({ success: true, message: "Profile updated successfully" });
+    } catch (error: any) {
+        console.error("Update profile error:", error);
+        if (error.code === 'P2002') {
+            return res.status(400).json({ error: "Enrollment number already exists" });
+        }
+        return res.status(500).json({ error: "Failed to update profile" });
+    }
+});
+
 // DELETE /api/students/me/coding-profiles/:id — unlink a coding profile
 router.delete("/me/coding-profiles/:id", authenticateToken, requireRole("STUDENT"), async (req: AuthRequest, res: Response) => {
     try {

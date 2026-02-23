@@ -116,8 +116,8 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
                 className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${active
-                    ? "bg-primary/10 text-primary shadow-sm"
-                    : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                  ? "bg-primary/10 text-primary shadow-sm"
+                  : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
                   }`}
               >
                 <item.icon className={`h-[18px] w-[18px] shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
@@ -154,8 +154,8 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
 
       {/* Main */}
       <main
-        className="flex-1 transition-all duration-200 min-h-screen"
-        style={{ marginLeft: collapsed ? 72 : 256 }}
+        className={`flex-1 transition-all duration-200 min-h-screen ${collapsed ? "lg:ml-[72px]" : "lg:ml-[256px]"
+          } ml-0`}
       >
         {/* Top Header */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border/50 bg-background/80 backdrop-blur-xl px-4 lg:px-8">

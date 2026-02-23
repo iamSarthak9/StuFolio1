@@ -130,13 +130,13 @@ const StudentProfile = () => {
                                 <span className="flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{profile.section} · {profile.year}</span>
                             </div>
                         </div>
-                        <div className="flex gap-4">
-                            <div className="text-center px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+                        <div className="flex flex-wrap gap-2 sm:gap-4 mt-4 sm:mt-0">
+                            <div className="flex-1 sm:flex-none text-center px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 min-w-[80px]">
                                 <div className="text-xl font-display font-bold text-primary">{profile.cgpa}</div>
                                 <div className="text-[10px] text-muted-foreground">CGPA</div>
                             </div>
                             {profile.rank && (
-                                <div className="text-center px-4 py-2 rounded-xl bg-warning/10 border border-warning/20">
+                                <div className="flex-1 sm:flex-none text-center px-4 py-2 rounded-xl bg-warning/10 border border-warning/20 min-w-[80px]">
                                     <div className="text-xl font-display font-bold text-warning">#{profile.rank}</div>
                                     <div className="text-[10px] text-muted-foreground">Class Rank</div>
                                 </div>

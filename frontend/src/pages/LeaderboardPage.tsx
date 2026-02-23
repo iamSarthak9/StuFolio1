@@ -75,7 +75,7 @@ const LeaderboardPage = () => {
       ) : (
         <>
           {/* Top 3 podium */}
-          <div className="grid grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto items-end">
             {[filtered[1], filtered[0], filtered[2]].filter(Boolean).map((student, i) => {
               const positions = [2, 1, 3];
               const pos = positions[i];
@@ -88,7 +88,7 @@ const LeaderboardPage = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.15 }}
-                  className={`rounded-2xl border bg-card p-4 text-center ${pos === 1 ? "border-warning/30 bg-gradient-to-b from-warning/5 to-transparent -mt-4" :
+                  className={`rounded-2xl border bg-card p-4 text-center ${pos === 1 ? "border-warning/30 bg-gradient-to-b from-warning/5 to-transparent sm:-mt-4 order-first sm:order-none" :
                     "border-border"
                     }`}
                 >
