@@ -26,17 +26,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Check for existing session
-        const savedUser = localStorage.getItem("stufolio_user");
-        const token = api.getToken();
-        if (savedUser && token) {
-            try {
-                setUser(JSON.parse(savedUser));
-            } catch {
-                api.logout();
+        const initAuth = async () => {
+            const token = api.getToken();
+            if (token) {
+                const verifiedUser = await api.verifySession();
+                if (verifiedUser) {
+                    setUser(verifiedUser);
+                    localStorage.setItem("stufolio_user", JSON.stringify(verifiedUser));
+                } else {
+                    // verifySession handles logout/cleanup
+                    setUser(null);
+                }
             }
-        }
-        setIsLoading(false);
+            setIsLoading(false);
+        };
+
+        initAuth();
     }, []);
 
     const login = async (email: string, password: string) => {

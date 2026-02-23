@@ -36,6 +36,10 @@ class ApiClient {
         });
 
         if (!response.ok) {
+            if (response.status === 401 && !path.includes("/auth/login")) {
+                this.logout();
+                window.location.href = "/login";
+            }
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || `Request failed with status ${response.status}`);
         }
@@ -66,6 +70,19 @@ class ApiClient {
         });
         this.setToken(data.token);
         return data;
+    }
+
+    async verifySession() {
+        if (!this.token) return null;
+        try {
+            const data = await this.request<{
+                user: { id: string; email: string; name: string; role: string; studentId?: string; mentorId?: string };
+            }>("/auth/me");
+            return data.user;
+        } catch (err) {
+            this.logout();
+            return null;
+        }
     }
 
     logout() {

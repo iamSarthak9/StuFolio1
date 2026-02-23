@@ -121,4 +121,39 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 });
 
+// GET /api/auth/me
+router.get("/me", async (req: Request, res: Response) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({ error: "Missing or invalid token" });
+        }
+
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; role: string };
+
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            include: { student: true, mentor: true },
+        });
+
+        if (!user) {
+            return res.status(401).json({ error: "User not found" });
+        }
+
+        return res.json({
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                studentId: user.student?.id,
+                mentorId: user.mentor?.id,
+            },
+        });
+    } catch (error) {
+        return res.status(401).json({ error: "Invalid session" });
+    }
+});
+
 export default router;
