@@ -73,13 +73,18 @@ const StudentProfile = () => {
         const grid = Array.from({ length: 52 }, () => Array.from({ length: 7 }, () => 0));
         const combinedActivity: Record<string, number> = {};
 
+        console.log("🧩 Coding Profiles:", codingProfiles);
+
         codingProfiles.forEach((p: any) => {
             if (p.activityData && typeof p.activityData === 'object') {
+                console.log(`📊 Activity for ${p.platform}:`, p.activityData);
                 Object.entries(p.activityData).forEach(([date, count]) => {
                     combinedActivity[date] = (combinedActivity[date] || 0) + (count as number);
                 });
             }
         });
+
+        console.log("📅 Combined Activity Map:", combinedActivity);
 
         const today = new Date();
         const startDate = new Date(today);
@@ -88,14 +93,17 @@ const StudentProfile = () => {
         const dayOfWeek = startDate.getDay();
         startDate.setDate(startDate.getDate() - dayOfWeek);
 
+        let activeCount = 0;
         for (let wi = 0; wi < 52; wi++) {
             for (let di = 0; di < 7; di++) {
                 const currentDate = new Date(startDate);
                 currentDate.setDate(startDate.getDate() + (wi * 7) + di);
                 const dateString = currentDate.toISOString().split('T')[0];
                 grid[wi][di] = combinedActivity[dateString] || 0;
+                if (grid[wi][di] > 0) activeCount++;
             }
         }
+        console.log(`✅ Heatmap generated. Days with activity: ${activeCount}`);
         return grid;
     };
 
