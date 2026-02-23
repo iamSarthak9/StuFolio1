@@ -36,13 +36,10 @@ class ApiClient {
         });
 
         if (!response.ok) {
-            if (response.status === 401 && !path.includes("/auth/login")) {
+            if (response.status === 401 && !path.includes("/auth/login") && !path.includes("/auth/me")) {
                 console.warn(`🔒 Unauthorized access to ${path}, cleaning up...`);
-                api.logout();
-                // Only redirect if we are not already on the login page or verifying session
-                if (!path.includes("/auth/me") && window.location.pathname !== "/login") {
-                    window.location.href = "/login";
-                }
+                this.logout();
+                window.location.href = "/login";
             }
             const errorData = await response.json().catch(() => ({}));
             console.error(`❌ API Error (${response.status}) at ${path}:`, errorData);

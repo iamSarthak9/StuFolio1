@@ -30,29 +30,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const token = api.getToken();
             const savedUser = localStorage.getItem("stufolio_user");
 
-            // Optimistically set user if we have data
+            console.log("🎬 Auth Init:", { hasToken: !!token, hasSavedUser: !!savedUser });
+
             if (token && savedUser) {
                 try {
-                    console.log("🔄 Found local session, loading optimistically...");
-                    setUser(JSON.parse(savedUser));
+                    const parsed = JSON.parse(savedUser);
+                    setUser(parsed);
+                    console.log("🚀 Optimistic user set:", parsed.email);
                 } catch (e) {
                     console.error("❌ Failed to parse saved user", e);
                 }
             }
 
             if (token) {
-                console.log("🔍 Verifying session with backend...");
-                const verifiedUser = await api.verifySession();
-                if (verifiedUser) {
-                    console.log("✅ Session verified successfully.");
-                    setUser(verifiedUser);
-                    localStorage.setItem("stufolio_user", JSON.stringify(verifiedUser));
-                } else {
-                    console.warn("⚠️ Session verification failed, logging out.");
-                    setUser(null);
+                try {
+                    console.log("📡 Verifying session...");
+                    const verifiedUser = await api.verifySession();
+                    if (verifiedUser) {
+                        console.log("✅ Session valid:", verifiedUser.email);
+                        setUser(verifiedUser);
+                        localStorage.setItem("stufolio_user", JSON.stringify(verifiedUser));
+                    } else {
+                        console.warn("❌ Session invalid or expired");
+                        setUser(null);
+                        api.logout();
+                    }
+                } catch (err) {
+                    console.error("🌐 Network error during verification:", err);
+                    // On network error, we KEEP the optimistic user so they aren't kicked out
                 }
             }
 
+            console.log("🏁 Auth Init Complete");
             setIsLoading(false);
         };
 
