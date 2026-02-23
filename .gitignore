@@ -37,3 +37,7 @@ Thumbs.db
 
 # Lock files (optional - uncomment if you want to ignore)
 # bun.lockb
+
+# Databases
+*.db
+*.db-journal
