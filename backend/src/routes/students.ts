@@ -105,6 +105,8 @@ router.get("/me/profile", authenticateToken, requireRole("STUDENT"), async (req:
 
         const s = user.student;
 
+        console.log(`[API] Serving profile for ${user.email}. Profiles count: ${s.codingProfiles.length}`);
+
         return res.json({
             profile: {
                 name: user.name,
@@ -119,15 +121,19 @@ router.get("/me/profile", authenticateToken, requireRole("STUDENT"), async (req:
                 totalStudents: s.totalStudents,
             },
             semesterCGPAs: s.semesterCGPAs.map((sc) => ({ sem: sc.semester, cgpa: sc.cgpa })),
-            codingProfiles: s.codingProfiles.map((cp) => ({
-                id: cp.id,
-                platform: cp.platform,
-                handle: cp.handle,
-                stats: JSON.parse(cp.stats),
-                verified: cp.verified,
-                lastSynced: cp.lastSynced,
-                activityData: cp.activityData,
-            })),
+            codingProfiles: s.codingProfiles.map((cp) => {
+                const activityCount = cp.activityData ? Object.keys(cp.activityData as any).length : 0;
+                console.log(`[API] Profile ${cp.platform}: ${activityCount} activity points`);
+                return {
+                    id: cp.id,
+                    platform: cp.platform,
+                    handle: cp.handle,
+                    stats: JSON.parse(cp.stats),
+                    verified: cp.verified,
+                    lastSynced: cp.lastSynced,
+                    activityData: cp.activityData,
+                };
+            }),
             badges: s.badges.map((b) => ({
                 label: b.label,
                 description: b.description,

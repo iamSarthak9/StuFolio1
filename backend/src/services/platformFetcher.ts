@@ -90,6 +90,7 @@ async function fetchLeetCode(handle: string): Promise<PlatformStats> {
         if (contests) stats.push({ label: "Contests", value: String(contests) });
         if (ranking) stats.push({ label: "Global Rank", value: `#${ranking.toLocaleString()}` });
 
+        console.log(`[Fetcher] LeetCode activity count: ${Object.keys(activity).length}`);
         return { verified: true, bio: aboutMe, stats, activity };
     } catch (err) {
         console.error("LeetCode fetch error:", err);
@@ -152,6 +153,7 @@ async function fetchCodeforces(handle: string): Promise<PlatformStats> {
             stats.push({ label: "Contribution", value: String(user.contribution) });
         }
 
+        console.log(`[Fetcher] Codeforces activity count: ${Object.keys(activity).length}`);
         return { verified: true, bio, stats, activity };
     } catch (err) {
         console.error("Codeforces fetch error:", err);
