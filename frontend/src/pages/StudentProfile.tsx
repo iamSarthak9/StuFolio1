@@ -221,33 +221,37 @@ const StudentProfile = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="rounded-xl border border-border bg-card p-6 mb-8"
+                className="rounded-xl border border-border bg-card p-4 sm:p-6 mb-8 w-full overflow-hidden"
             >
                 <h3 className="font-display font-semibold text-foreground mb-1">Activity Heatmap</h3>
                 <p className="text-xs text-muted-foreground mb-4">Your problem-solving activity over the past year</p>
-                <div className="overflow-x-auto">
-                    <div className="flex gap-[3px] min-w-[700px]">
-                        {activityGrid.map((week, wi) => (
-                            <div key={wi} className="flex flex-col gap-[3px]">
-                                {week.map((day, di) => (
-                                    <div
-                                        key={di}
-                                        title={`${day.count} submissions on ${day.date}`}
-                                        className={`h-[11px] w-[11px] rounded-[2px] transition-all hover:ring-1 hover:ring-primary/50 cursor-pointer group relative ${day.count === 0 ? "bg-secondary" :
-                                            day.count === 1 ? "bg-primary/20" :
-                                                day.count === 2 ? "bg-primary/40" :
-                                                    day.count === 3 ? "bg-primary/60" :
-                                                        "bg-primary"
-                                            }`}
-                                    >
-                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded pointer-events-none opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 transition-opacity">
-                                            {day.count} submissions on {day.date}
+                <div className="relative">
+                    <div className="overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                        <div className="flex gap-[3px] min-w-[max-content] md:min-w-0 md:justify-between pr-4">
+                            {activityGrid.map((week, wi) => (
+                                <div key={wi} className="flex flex-col gap-[3px] shrink-0">
+                                    {week.map((day, di) => (
+                                        <div
+                                            key={di}
+                                            title={`${day.count} submissions on ${day.date}`}
+                                            className={`h-[10px] w-[10px] sm:h-[11px] sm:w-[11px] rounded-[2px] transition-all hover:ring-1 hover:ring-primary/50 cursor-pointer group relative ${day.count === 0 ? "bg-secondary" :
+                                                day.count === 1 ? "bg-primary/20" :
+                                                    day.count === 2 ? "bg-primary/40" :
+                                                        day.count === 3 ? "bg-primary/60" :
+                                                            "bg-primary"
+                                                }`}
+                                        >
+                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded pointer-events-none opacity-0 group-hover:opacity-100 whitespace-nowrap z-50 transition-opacity">
+                                                {day.count} submissions on {day.date}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
                     </div>
+                    {/* Visual fade effect to indicate more content on small screens */}
+                    <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-card to-transparent pointer-events-none md:hidden" />
                 </div>
             </motion.div>
 
@@ -257,11 +261,11 @@ const StudentProfile = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="rounded-xl border border-border bg-card p-6"
+                    className="rounded-xl border border-border bg-card p-4 sm:p-6"
                 >
-                    <h3 className="font-display font-semibold text-foreground mb-1">Badges</h3>
+                    <h3 className="font-display font-semibold text-foreground mb-1 text-sm sm:text-base">Badges</h3>
                     <p className="text-xs text-muted-foreground mb-4">Achievements and milestones</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
                         {badges.map((badge: any) => (
                             <div
                                 key={badge.label}
@@ -284,15 +288,15 @@ const StudentProfile = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="rounded-xl border border-border bg-card p-6"
+                    className="rounded-xl border border-border bg-card p-4 sm:p-6"
                 >
-                    <h3 className="font-display font-semibold text-foreground mb-1">Skills & Technologies</h3>
+                    <h3 className="font-display font-semibold text-foreground mb-1 text-sm sm:text-base">Skills & Technologies</h3>
                     <p className="text-xs text-muted-foreground mb-4">Technologies you've worked with</p>
                     <div className="flex flex-wrap gap-2">
                         {skills.map((skill: string) => (
                             <span
                                 key={skill}
-                                className="px-3 py-1.5 rounded-lg border border-border bg-secondary/50 text-xs font-medium text-foreground hover:border-primary/30 transition-all cursor-default"
+                                className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-border bg-secondary/50 text-xs font-medium text-foreground hover:border-primary/30 transition-all cursor-default"
                             >
                                 {skill}
                             </span>
