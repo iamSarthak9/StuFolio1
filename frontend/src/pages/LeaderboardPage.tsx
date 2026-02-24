@@ -21,11 +21,28 @@ const getRankBadge = (rank: number) => {
   return "bg-secondary text-muted-foreground border-border";
 };
 
+interface LeaderboardStudent {
+  id: string;
+  name: string;
+  rank: number;
+  points: number;
+  avatar?: string;
+  trend?: "up" | "down" | "none";
+  solved: number;
+  semester?: string;
+  section?: string;
+  cgpa: number;
+  problemsSolved: number;
+  compositeScore: number;
+  streak: number;
+  attendance: number;
+}
+
 const LeaderboardPage = () => {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("overall");
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<LeaderboardStudent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +50,7 @@ const LeaderboardPage = () => {
       setLoading(true);
       try {
         const result = await api.getLeaderboard(activeTab);
-        setData(result);
+        setData(result as LeaderboardStudent[]);
       } catch (err) {
         console.error("Failed to load leaderboard:", err);
       } finally {

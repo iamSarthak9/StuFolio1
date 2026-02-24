@@ -17,7 +17,13 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, isAuthenticated, user } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate(user.role === "MENTOR" ? "/mentor" : "/dashboard");
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,8 +48,9 @@ const LoginPage = () => {
       } else {
         navigate("/dashboard");
       }
-    } catch (err: any) {
-      setError(err.message || "Authentication failed. Please try again.");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Authentication failed. Please try again.";
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }

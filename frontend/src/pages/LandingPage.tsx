@@ -17,6 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const features = [
   {
@@ -107,6 +108,8 @@ const fadeUp = {
 };
 
 const LandingPage = () => {
+  const { isAuthenticated, user } = useAuth();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -122,14 +125,24 @@ const LandingPage = () => {
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
             <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
             <a href="#stats" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Stats</a>
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-muted-foreground">Log in</Button>
-            </Link>
-            <Link to="/login">
-              <Button size="sm" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow px-6">
-                Get Started <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to={user?.role === "MENTOR" ? "/mentor" : "/dashboard"}>
+                <Button size="sm" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow px-6">
+                  Dashboard <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground">Log in</Button>
+                </Link>
+                <Link to="/login">
+                  <Button size="sm" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow px-6">
+                    Get Started <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -165,11 +178,19 @@ const LandingPage = () => {
               Leaderboards, AI insights, mentor dashboards — all in one place.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/login">
-                <Button size="lg" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-10 h-13 text-base font-semibold">
-                  Start Your Journey <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link to={user?.role === "MENTOR" ? "/mentor" : "/dashboard"}>
+                  <Button size="lg" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-10 h-13 text-base font-semibold">
+                    Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/login">
+                  <Button size="lg" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-10 h-13 text-base font-semibold">
+                    Start Your Journey <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
               <Link to="/leaderboard">
                 <Button size="lg" variant="outline" className="h-13 text-base border-border/60 text-foreground hover:bg-secondary/80 px-8">
                   <Trophy className="mr-2 h-4 w-4 text-warning" /> View Leaderboard
@@ -372,9 +393,9 @@ const LandingPage = () => {
               <p className="text-muted-foreground mb-8 max-w-lg mx-auto text-lg">
                 Join your campus community and start climbing the leaderboard today. It's free to get started.
               </p>
-              <Link to="/login">
+              <Link to={isAuthenticated ? (user?.role === "MENTOR" ? "/mentor" : "/dashboard") : "/login"}>
                 <Button size="lg" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-12 h-13 text-base font-semibold">
-                  Start Now <ArrowRight className="ml-2 h-4 w-4" />
+                  {isAuthenticated ? "Go to Dashboard" : "Start Now"} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
             </div>

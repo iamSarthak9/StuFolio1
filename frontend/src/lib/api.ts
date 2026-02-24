@@ -1,5 +1,47 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
+export interface User {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    studentId?: string;
+    mentorId?: string;
+}
+
+export interface AuthResponse {
+    token: string;
+    user: User;
+}
+
+export interface CodingProfile {
+    id: string;
+    platform: string;
+    handle: string;
+    stats: { label: string; value: string }[];
+    activityData: Record<string, number>;
+}
+
+export interface Profile {
+    name: string;
+    enrollment: string;
+    email: string;
+    section: string;
+    semester: string;
+    branch: string;
+    year: string;
+    cgpa: number;
+    rank?: number | null;
+}
+
+export interface StudentProfileResponse {
+    profile: Profile;
+    semesterCGPAs: { sem: string; cgpa: number }[];
+    codingProfiles: CodingProfile[];
+    badges: { label: string; icon: string; desc: string }[];
+    skills: string[];
+}
+
 class ApiClient {
     private token: string | null = null;
 
@@ -51,10 +93,7 @@ class ApiClient {
 
     // Auth
     async login(email: string, password: string) {
-        const data = await this.request<{
-            token: string;
-            user: { id: string; email: string; name: string; role: string; studentId?: string; mentorId?: string };
-        }>("/auth/login", {
+        const data = await this.request<AuthResponse>("/auth/login", {
             method: "POST",
             body: JSON.stringify({ email, password }),
         });
@@ -62,11 +101,8 @@ class ApiClient {
         return data;
     }
 
-    async register(userData: Record<string, any>) {
-        const data = await this.request<{
-            token: string;
-            user: { id: string; email: string; name: string; role: string; studentId?: string; mentorId?: string };
-        }>("/auth/register", {
+    async register(userData: Record<string, unknown>) {
+        const data = await this.request<AuthResponse>("/auth/register", {
             method: "POST",
             body: JSON.stringify(userData),
         });
@@ -78,11 +114,15 @@ class ApiClient {
         if (!this.token) return null;
         try {
             const data = await this.request<{
-                user: { id: string; email: string; name: string; role: string; studentId?: string; mentorId?: string };
+                user: User;
             }>("/auth/me");
             return data.user;
-        } catch (err) {
-            this.logout();
+        } catch (err: unknown) {
+            // Only log out if the server explicitly says the token is invalid (401)
+            // If it's a network error (e.g. status 500 or fetch failed), we preserve the token
+            if (err instanceof Error && (err.message?.includes("401") || (err as { status?: number }).status === 401)) {
+                this.logout();
+            }
             return null;
         }
     }
@@ -94,41 +134,41 @@ class ApiClient {
 
     // Student
     getStudentDashboard() {
-        return this.request<any>("/students/me");
+        return this.request<unknown>("/students/me");
     }
 
     getStudentProfile() {
-        return this.request<any>("/students/me/profile");
+        return this.request<StudentProfileResponse>("/students/me/profile");
     }
 
     getStudentAttendance() {
-        return this.request<any>("/students/me/attendance");
+        return this.request<unknown>("/students/me/attendance");
     }
 
     getStudentAcademics() {
-        return this.request<any>("/students/me/academics");
+        return this.request<unknown>("/students/me/academics");
     }
 
     // Coding Profiles
     getCodingProfiles() {
-        return this.request<any[]>("/students/me/coding-profiles");
+        return this.request<CodingProfile[]>("/students/me/coding-profiles");
     }
 
     linkCodingProfile(platform: string, handle: string) {
-        return this.request<any>("/students/me/coding-profiles", {
+        return this.request<CodingProfile>("/students/me/coding-profiles", {
             method: "POST",
             body: JSON.stringify({ platform, handle }),
         });
     }
 
     unlinkCodingProfile(id: string) {
-        return this.request<any>(`/students/me/coding-profiles/${id}`, {
+        return this.request<unknown>(`/students/me/coding-profiles/${id}`, {
             method: "DELETE",
         });
     }
 
     refreshCodingProfiles() {
-        return this.request<any>("/students/me/coding-profiles/refresh", {
+        return this.request<unknown>("/students/me/coding-profiles/refresh", {
             method: "POST",
         });
     }
@@ -138,11 +178,11 @@ class ApiClient {
     }
 
     getAIAnalysis() {
-        return this.request<any>("/analysis/me");
+        return this.request<unknown>("/analysis/me");
     }
 
-    updateStudentProfile(data: any) {
-        return this.request<any>("/students/me", {
+    updateStudentProfile(data: unknown) {
+        return this.request<unknown>("/students/me", {
             method: "PATCH",
             body: JSON.stringify(data),
         });
@@ -150,44 +190,44 @@ class ApiClient {
 
     // Mentor
     getMentorDashboard() {
-        return this.request<any>("/mentor/dashboard");
+        return this.request<unknown>("/mentor/dashboard");
     }
 
     getMentorStudents(params?: { section?: string; semester?: string; search?: string }) {
-        const query = params ? "?" + new URLSearchParams(params as any).toString() : "";
-        return this.request<any>(`/mentor/students${query}`);
+        const query = params ? "?" + new URLSearchParams(params as Record<string, string>).toString() : "";
+        return this.request<unknown>(`/mentor/students${query}`);
     }
 
     getMentorStudentDetail(studentId: string) {
-        return this.request<any>(`/students/${studentId}`);
+        return this.request<unknown>(`/students/${studentId}`);
     }
 
     getMentorAnalytics() {
-        return this.request<any>("/mentor/analytics");
+        return this.request<unknown>("/mentor/analytics");
     }
 
     // Leaderboard
     getLeaderboard(tab = "overall") {
-        return this.request<any>(`/leaderboard?tab=${tab}`);
+        return this.request<unknown>(`/leaderboard?tab=${tab}`);
     }
 
     // Events
     getEvents(month?: number, year?: number) {
         const params = month && year ? `?month=${month}&year=${year}` : "";
-        return this.request<any>(`/events${params}`);
+        return this.request<unknown>(`/events${params}`);
     }
 
     // Notifications
     getNotifications() {
-        return this.request<any>("/notifications");
+        return this.request<unknown>("/notifications");
     }
 
     markNotificationRead(id: string) {
-        return this.request<any>(`/notifications/${id}/read`, { method: "PATCH" });
+        return this.request<unknown>(`/notifications/${id}/read`, { method: "PATCH" });
     }
 
     markAllNotificationsRead() {
-        return this.request<any>("/notifications/read-all", { method: "PATCH" });
+        return this.request<unknown>("/notifications/read-all", { method: "PATCH" });
     }
 }
 

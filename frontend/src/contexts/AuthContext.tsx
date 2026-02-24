@@ -15,7 +15,7 @@ interface AuthContextType {
     isLoading: boolean;
     isAuthenticated: boolean;
     login: (email: string, password: string) => Promise<void>;
-    register: (userData: Record<string, any>) => Promise<void>;
+    register: (userData: Record<string, unknown>) => Promise<void>;
     logout: () => void;
 }
 
@@ -51,11 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         setUser(verifiedUser);
                         localStorage.setItem("stufolio_user", JSON.stringify(verifiedUser));
                     } else {
-                        console.warn("❌ Session invalid or expired");
-                        setUser(null);
-                        api.logout();
+                        const stillHasToken = api.getToken();
+                        if (!stillHasToken) {
+                            console.warn("❌ Session invalid or expired");
+                            setUser(null);
+                        } else {
+                            console.log("🟡 Session verification failed but token remains (network issue or server down)");
+                        }
                     }
-                } catch (err) {
+                } catch (err: unknown) {
                     console.error("🌐 Network error during verification:", err);
                     // On network error, we KEEP the optimistic user so they aren't kicked out
                 }
@@ -74,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("stufolio_user", JSON.stringify(data.user));
     };
 
-    const register = async (userData: Record<string, any>) => {
+    const register = async (userData: Record<string, unknown>) => {
         const data = await api.register(userData);
         setUser(data.user);
         localStorage.setItem("stufolio_user", JSON.stringify(data.user));

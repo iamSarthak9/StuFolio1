@@ -14,18 +14,17 @@ import {
     Target,
     BookOpen,
     Loader2,
+    LucideIcon,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
-import api from "@/lib/api";
+import api, { StudentProfileResponse, Profile, CodingProfile } from "@/lib/api";
 
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, LucideIcon> = {
     Flame, Code, Target, BookOpen, Trophy, GraduationCap, Award, Star,
 };
 
-// Heatmap logic will be derived from profile data
-
 const StudentProfile = () => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<StudentProfileResponse | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -42,7 +41,13 @@ const StudentProfile = () => {
         fetchData();
     }, []);
 
-    if (loading) {
+    const colorMap: Record<string, { color: string; bg: string }> = {
+        LeetCode: { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
+        Codeforces: { color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
+        GitHub: { color: "text-gray-300", bg: "bg-gray-400/10 border-gray-400/20" },
+    };
+
+    if (loading || !data) {
         return (
             <DashboardLayout title="My Profile" subtitle="Loading..." role="student">
                 <div className="flex items-center justify-center py-20">
@@ -52,30 +57,17 @@ const StudentProfile = () => {
         );
     }
 
-    const profile = data?.profile || { name: "Student", enrollment: "—", email: "—", section: "—", semester: "—", branch: "CSE", year: "—", cgpa: 0 };
-    const semesterCGPAs = data?.semesterCGPAs || [];
-    const codingProfiles = data?.codingProfiles || [];
-    const badges = (data?.badges || []).map((b: any) => ({
-        ...b,
-        icon: iconMap[b.icon] || Award,
-    }));
-    const skills = data?.skills || [];
-    const initials = profile.name.split(" ").map((n: string) => n[0]).join("").toUpperCase();
-
-    const colorMap: Record<string, { color: string; bg: string }> = {
-        LeetCode: { color: "text-amber-400", bg: "bg-amber-400/10 border-amber-400/20" },
-        Codeforces: { color: "text-blue-400", bg: "bg-blue-400/10 border-blue-400/20" },
-        GitHub: { color: "text-gray-300", bg: "bg-gray-400/10 border-gray-400/20" },
-    };
+    const { profile, semesterCGPAs, codingProfiles, badges, skills } = data;
+    const initials = (profile.name || "S").split(" ").map((n: string) => n[0]).join("").toUpperCase();
 
     // Generate Heatmap Grid (364 days / 52 weeks)
-    const generateActivityGrid = () => {
+    const generateActivityGrid = (profiles: CodingProfile[]) => {
         const grid: { count: number; date: string }[][] = Array.from({ length: 52 }, () =>
             Array.from({ length: 7 }, () => ({ count: 0, date: "" }))
         );
         const combinedActivity: Record<string, number> = {};
 
-        codingProfiles.forEach((p: any) => {
+        profiles.forEach((p) => {
             if (p.activityData && typeof p.activityData === 'object') {
                 Object.entries(p.activityData).forEach(([date, count]) => {
                     combinedActivity[date] = (combinedActivity[date] || 0) + (count as number);
@@ -104,7 +96,7 @@ const StudentProfile = () => {
         return grid;
     };
 
-    const activityGrid = generateActivityGrid();
+    const activityGrid = generateActivityGrid(codingProfiles);
 
     return (
         <DashboardLayout title="My Profile" subtitle="Your academic & coding identity" role="student">
@@ -157,7 +149,7 @@ const StudentProfile = () => {
                     <h3 className="font-display font-semibold text-foreground mb-1">Academic Summary</h3>
                     <p className="text-xs text-muted-foreground mb-4">Semester-wise CGPA progression</p>
                     <div className="space-y-3">
-                        {semesterCGPAs.map((s: any) => (
+                        {semesterCGPAs.map((s) => (
                             <div key={s.sem} className="flex items-center gap-3">
                                 <span className="text-xs text-muted-foreground w-14">{s.sem}</span>
                                 <div className="flex-1 h-2.5 rounded-full bg-secondary overflow-hidden">
@@ -191,7 +183,7 @@ const StudentProfile = () => {
                     transition={{ delay: 0.2 }}
                     className="lg:col-span-2 space-y-4"
                 >
-                    {codingProfiles.map((p: any) => {
+                    {codingProfiles.map((p) => {
                         const colors = colorMap[p.platform] || { color: "text-primary", bg: "bg-primary/10 border-primary/20" };
                         return (
                             <div key={p.platform} className={`rounded-xl border p-5 ${colors.bg}`}>
@@ -203,7 +195,7 @@ const StudentProfile = () => {
                                     <ExternalLink className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-pointer" />
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {p.stats?.map((stat: any) => (
+                                    {p.stats?.map((stat) => (
                                         <div key={stat.label} className="bg-white/5 p-2 rounded-lg border border-current/5">
                                             <p className="text-[10px] sm:text-[11px] text-muted-foreground opacity-80">{stat.label}</p>
                                             <p className="text-xs sm:text-sm font-bold text-foreground truncate">{stat.value}</p>
@@ -266,17 +258,22 @@ const StudentProfile = () => {
                     <h3 className="font-display font-semibold text-foreground mb-1 text-sm sm:text-base">Badges</h3>
                     <p className="text-xs text-muted-foreground mb-4">Achievements and milestones</p>
                     <div className="grid grid-cols-1 xs:grid-cols-2 gap-3">
-                        {badges.map((badge: any) => (
+                        {badges.map((badge) => (
                             <div
                                 key={badge.label}
                                 className="flex items-center gap-3 rounded-xl border p-3 transition-all border-primary/30 bg-primary/5 hover:bg-primary/10"
                             >
                                 <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 bg-primary/20 text-primary">
-                                    <badge.icon className="h-5 w-5" />
+                                    <div className="flex items-center justify-center">
+                                        {(() => {
+                                            const Icon = iconMap[badge.icon] || Award;
+                                            return <Icon className="h-5 w-5" />;
+                                        })()}
+                                    </div>
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs font-bold text-foreground truncate">{badge.label}</p>
-                                    <p className="text-[10px] text-muted-foreground line-clamp-1">{badge.desc || badge.description}</p>
+                                    <p className="text-[10px] text-muted-foreground line-clamp-1">{badge.desc}</p>
                                 </div>
                             </div>
                         ))}
