@@ -141,17 +141,17 @@ const MentorAcademicRecordsPage = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             className="bg-card border border-border rounded-xl p-6 shadow-sm"
                         >
-                            <div className="flex items-center justify-between mb-8">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="h-14 w-14 rounded-2xl bg-gradient-primary flex items-center justify-center text-xl font-bold text-white">
+                                    <div className="h-14 w-14 rounded-2xl bg-gradient-primary flex items-center justify-center text-xl font-bold text-white shrink-0">
                                         {selectedStudent.name[0]}
                                     </div>
-                                    <div>
-                                        <h2 className="text-xl font-display font-bold text-foreground">{selectedStudent.name}</h2>
+                                    <div className="min-w-0">
+                                        <h2 className="text-xl font-display font-bold text-foreground truncate">{selectedStudent.name}</h2>
                                         <p className="text-sm text-muted-foreground">Semester {selectedStudent.semester} • {selectedStudent.section}</p>
                                     </div>
                                 </div>
-                                <div className="text-right">
+                                <div className="text-left sm:text-right pl-[72px] sm:pl-0">
                                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Current CGPA</p>
                                     <div className="text-3xl font-display font-black text-gradient-primary">{selectedStudent.cgpa}</div>
                                 </div>

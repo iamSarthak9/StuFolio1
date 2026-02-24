@@ -449,16 +449,16 @@ const SettingsPage = () => {
                         transition={{ delay: 0.1 }}
                         className="rounded-xl border border-border bg-card p-6"
                     >
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
                             <div className="flex items-center gap-2">
-                                <Link2 className="h-5 w-5 text-primary" />
+                                <Link2 className="h-5 w-5 text-primary shrink-0" />
                                 <h3 className="font-display font-semibold text-foreground">Linked Coding Profiles</h3>
                             </div>
                             {connectedCount > 0 && (
                                 <button
                                     onClick={handleRefreshAll}
                                     disabled={refreshing}
-                                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-all disabled:opacity-50"
+                                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-all disabled:opacity-50 self-start sm:self-auto"
                                 >
                                     <RefreshCw className={`h-3 w-3 ${refreshing ? "animate-spin" : ""}`} />
                                     {refreshing ? "Refreshing..." : "Refresh All Stats"}
@@ -506,7 +506,7 @@ const SettingsPage = () => {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 shrink-0">
                                                 {profile.connected ? (
                                                     <>
                                                         <button
@@ -519,10 +519,18 @@ const SettingsPage = () => {
                                                         </button>
                                                         <button
                                                             onClick={() => handleUnlink(profile)}
-                                                            className="text-xs font-medium px-2.5 py-1.5 rounded-lg border bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 transition-all"
+                                                            className="text-xs font-medium px-2.5 py-1.5 rounded-lg border bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 transition-all hidden sm:block"
                                                             disabled={saving}
                                                         >
                                                             Disconnect
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleUnlink(profile)}
+                                                            className="text-xs font-medium px-2.5 py-1.5 rounded-lg border bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 transition-all sm:hidden"
+                                                            disabled={saving}
+                                                            title="Disconnect"
+                                                        >
+                                                            <X className="h-3 w-3" />
                                                         </button>
                                                     </>
                                                 ) : (

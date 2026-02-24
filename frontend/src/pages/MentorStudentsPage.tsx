@@ -103,25 +103,25 @@ const MentorStudentsPage = () => {
                                 >
                                     <Link
                                         to={`/mentor/student-detail?id=${student.id}`}
-                                        className="flex items-center justify-between px-6 py-4 hover:bg-secondary/30 transition-colors"
+                                        className="flex flex-col sm:flex-row sm:items-center justify-between px-4 sm:px-6 py-4 hover:bg-secondary/30 transition-colors gap-3 sm:gap-0"
                                     >
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center text-sm font-bold text-white shadow-sm">
+                                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                            <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center text-sm font-bold text-white shadow-sm shrink-0">
                                                 {student.name.split(" ").map((n: string) => n[0]).join("")}
                                             </div>
-                                            <div>
+                                            <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-sm font-semibold text-foreground">{student.name}</span>
-                                                    <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">{student.enrollment}</span>
+                                                    <span className="text-sm font-semibold text-foreground truncate">{student.name}</span>
+                                                    <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground hidden sm:inline-block shrink-0">{student.enrollment}</span>
                                                 </div>
-                                                <div className="flex items-center gap-4 mt-1">
-                                                    <span className="text-xs text-muted-foreground">Internal Section: {student.section}</span>
-                                                    <span className="text-xs text-muted-foreground">Semester: {student.semester}</span>
+                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+                                                    <span className="text-xs text-muted-foreground">Section: {student.section}</span>
+                                                    <span className="text-xs text-muted-foreground hidden sm:inline">Semester: {student.semester}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-4 sm:gap-6">
+                                        <div className="flex items-center gap-4 sm:gap-6 pl-[52px] sm:pl-0">
                                             <div className="flex items-center gap-4 sm:gap-8">
                                                 <div className="text-center">
                                                     <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">CGPA</p>
@@ -133,7 +133,7 @@ const MentorStudentsPage = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2 sm:gap-3">
                                                 <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-medium ${status.className}`}>
                                                     {status.label}
                                                 </span>

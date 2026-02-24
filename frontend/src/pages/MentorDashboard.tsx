@@ -271,24 +271,24 @@ const MentorDashboard = () => {
               <Link
                 key={student.id || student.name}
                 to={`/mentor/student-detail?id=${student.id}`}
-                className="flex items-center justify-between px-4 py-3.5 hover:bg-secondary/30 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3.5 hover:bg-secondary/30 transition-colors gap-2 sm:gap-0"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-gradient-primary flex items-center justify-center text-xs font-bold text-white">
+                  <div className="h-9 w-9 rounded-lg bg-gradient-primary flex items-center justify-center text-xs font-bold text-white shrink-0">
                     {student.name.split(" ").map((n: string) => n[0]).join("")}
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-foreground">{student.name}</span>
-                    <div className="flex items-center gap-3 mt-0.5">
+                  <div className="min-w-0">
+                    <span className="text-sm font-medium text-foreground truncate block">{student.name}</span>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                       <span className="text-[11px] text-muted-foreground">CGPA: {student.cgpa}</span>
-                      <span className="text-[11px] text-muted-foreground">Problems: {student.problems}</span>
+                      <span className="text-[11px] text-muted-foreground hidden sm:inline">Problems: {student.problems}</span>
                       <span className={`text-[11px] ${student.attendance < 75 ? "text-destructive" : "text-muted-foreground"}`}>
-                        Attendance: {student.attendance}%
+                        Att: {student.attendance}%
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 pl-12 sm:pl-0">
                   {student.trend === "up" && <TrendingUp className="h-3.5 w-3.5 text-accent" />}
                   {student.trend === "down" && <TrendingUp className="h-3.5 w-3.5 text-destructive rotate-180" />}
                   <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-medium ${status.className}`}>

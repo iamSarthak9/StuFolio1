@@ -132,26 +132,26 @@ const MentorStudentDetail = () => {
                 className="rounded-2xl border border-border bg-card p-6 mb-8"
             >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                    <div className="h-16 w-16 rounded-2xl bg-gradient-primary flex items-center justify-center text-xl font-bold text-white shadow-glow">
+                    <div className="h-16 w-16 rounded-2xl bg-gradient-primary flex items-center justify-center text-xl font-bold text-white shadow-glow shrink-0">
                         {profile.name.split(" ").map((n: string) => n[0]).join("")}
                     </div>
-                    <div className="flex-1">
-                        <h2 className="text-xl font-display font-bold text-foreground">{profile.name}</h2>
+                    <div className="flex-1 min-w-0">
+                        <h2 className="text-xl font-display font-bold text-foreground truncate">{profile.name}</h2>
                         <div className="flex flex-wrap gap-3 mt-1">
-                            <span className="text-xs text-muted-foreground flex items-center gap-1"><Mail className="h-3 w-3" />{profile.email}</span>
-                            <span className="text-xs text-muted-foreground flex items-center gap-1"><GraduationCap className="h-3 w-3" />{profile.enrollment} · {profile.section}</span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1 truncate"><Mail className="h-3 w-3 shrink-0" />{profile.email}</span>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1"><GraduationCap className="h-3 w-3 shrink-0" />{profile.enrollment} · {profile.section}</span>
                         </div>
                     </div>
-                    <div className="flex gap-3">
-                        <div className="text-center px-4 py-2 rounded-xl bg-primary/10 border border-primary/20">
+                    <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
+                        <div className="text-center px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 flex-1 sm:flex-none min-w-[80px]">
                             <div className="text-lg font-display font-bold text-primary">{profile.cgpa}</div>
                             <div className="text-[10px] text-muted-foreground">CGPA</div>
                         </div>
-                        <div className={`text-center px-4 py-2 rounded-xl ${Number(overallAttendance) < 75 ? "bg-destructive/10 border border-destructive/20" : "bg-accent/10 border border-accent/20"}`}>
+                        <div className={`text-center px-4 py-2 rounded-xl flex-1 sm:flex-none min-w-[80px] ${Number(overallAttendance) < 75 ? "bg-destructive/10 border border-destructive/20" : "bg-accent/10 border border-accent/20"}`}>
                             <div className={`text-lg font-display font-bold ${Number(overallAttendance) < 75 ? "text-destructive" : "text-accent"}`}>{overallAttendance}%</div>
                             <div className="text-[10px] text-muted-foreground">Attendance</div>
                         </div>
-                        <div className="text-center px-4 py-2 rounded-xl bg-amber-400/10 border border-amber-400/20">
+                        <div className="text-center px-4 py-2 rounded-xl bg-amber-400/10 border border-amber-400/20 flex-1 sm:flex-none min-w-[80px]">
                             <div className="text-lg font-display font-bold text-amber-400">{totalProblems}</div>
                             <div className="text-[10px] text-muted-foreground">Problems</div>
                         </div>

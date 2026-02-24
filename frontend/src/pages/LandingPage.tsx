@@ -216,19 +216,19 @@ const LandingPage = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               {isAuthenticated ? (
                 <Link to={user?.role === "MENTOR" ? "/mentor" : "/dashboard"}>
-                  <Button size="lg" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-10 h-13 text-base font-semibold">
+                  <Button size="lg" className="w-full sm:w-auto min-w-[220px] bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-10 h-13 text-base font-semibold">
                     Go to Dashboard <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
               ) : (
                 <Link to="/login">
-                  <Button size="lg" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-10 h-13 text-base font-semibold">
+                  <Button size="lg" className="w-full sm:w-auto min-w-[220px] bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-10 h-13 text-base font-semibold">
                     Start Your Journey <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
               )}
               <Link to="/leaderboard">
-                <Button size="lg" variant="outline" className="h-13 text-base border-border/60 text-foreground hover:bg-secondary/80 px-8">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto min-w-[220px] h-13 text-base border-border/60 text-foreground hover:bg-secondary/80 px-8">
                   <Trophy className="mr-2 h-4 w-4 text-warning" /> View Leaderboard
                 </Button>
               </Link>
@@ -430,7 +430,7 @@ const LandingPage = () => {
                 Join your campus community and start climbing the leaderboard today. It's free to get started.
               </p>
               <Link to={isAuthenticated ? (user?.role === "MENTOR" ? "/mentor" : "/dashboard") : "/login"}>
-                <Button size="lg" className="bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-12 h-13 text-base font-semibold">
+                <Button size="lg" className="w-full sm:w-auto min-w-[220px] bg-gradient-primary text-white hover:opacity-90 shadow-glow-lg px-12 h-13 text-base font-semibold">
                   {isAuthenticated ? "Go to Dashboard" : "Start Now"} <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>

@@ -142,15 +142,15 @@ const CareerPage = () => {
                             <div key={cert.title} className="rounded-xl border border-border p-4 bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer group">
                                 <div className="flex items-start gap-3">
                                     <span className="text-2xl">{cert.icon}</span>
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="text-sm font-semibold text-foreground">{cert.title}</h4>
-                                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <h4 className="text-sm font-semibold text-foreground truncate">{cert.title}</h4>
+                                            <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-0.5">{cert.platform} · {cert.time}</p>
                                         <span className={`inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded ${cert.relevance === "Critical" ? "bg-destructive/10 text-destructive border border-destructive/20" :
-                                                cert.relevance === "High" ? "bg-primary/10 text-primary border border-primary/20" :
-                                                    "bg-secondary text-muted-foreground border border-border"
+                                            cert.relevance === "High" ? "bg-primary/10 text-primary border border-primary/20" :
+                                                "bg-secondary text-muted-foreground border border-border"
                                             }`}>
                                             {cert.relevance} Relevance
                                         </span>
