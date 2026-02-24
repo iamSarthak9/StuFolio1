@@ -274,22 +274,22 @@ router.post("/attendance/daily", authenticateToken, requireRole("MENTOR"), async
 // PATCH /api/mentor/students/:id/academics — update student marks
 router.patch("/students/:id/academics", authenticateToken, requireRole("MENTOR"), async (req: AuthRequest, res: Response) => {
     try {
-        const studentId = req.params.id;
+        const studentId = req.params.id as string;
         const { subjectId, marks, semester } = req.body;
 
         const record = await prisma.academicRecord.upsert({
             where: {
                 studentId_subjectId_semester: {
                     studentId,
-                    subjectId,
-                    semester
+                    subjectId: subjectId as string,
+                    semester: semester as string
                 }
             },
             create: {
                 studentId,
-                subjectId,
+                subjectId: subjectId as string,
                 marks,
-                semester,
+                semester: semester as string,
                 maxMarks: 100
             },
             update: {
