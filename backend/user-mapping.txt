@@ -1,5 +1,0 @@
-=== ALL USERS ===
-Role: STUDENT  | Section: CSE-B      | Email: nakulgupta0152@gmail.com
-Role: STUDENT  | Section: CSE-B      | Email: rajatc070789@gmail.com
-Role: STUDENT  | Section: CSE-B      | Email: nakul@edu.in
-Role: MENTOR   | Section: CSE-B      | Email: mentor@campus.edu
