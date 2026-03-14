@@ -48,6 +48,7 @@ const platformColors: Record<string, string> = {
 const SettingsPage = () => {
     const { user } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
     const [profiles, setProfiles] = useState<CodingProfile[]>([]);
     const [loadingProfiles, setLoadingProfiles] = useState(true);
     const [editingPlatform, setEditingPlatform] = useState<string | null>(null);
@@ -742,7 +743,20 @@ const SettingsPage = () => {
                         </div>
                         <div>
                             <label className="text-xs text-muted-foreground mb-1 block">New Password</label>
-                            <Input type="password" placeholder="Enter new password" className="bg-secondary/50 border-border" />
+                            <div className="relative">
+                                <Input
+                                    type={showNewPassword ? "text" : "password"}
+                                    placeholder="Enter new password"
+                                    className="bg-secondary/50 border-border pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <button className="mt-4 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors">

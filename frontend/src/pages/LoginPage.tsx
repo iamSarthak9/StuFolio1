@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, GraduationCap, Users, Shield, Sparkles, Code, BarChart3, Loader2 } from "lucide-react";
+import { ArrowRight, GraduationCap, Users, Shield, Sparkles, Code, BarChart3, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../authConfig";
@@ -21,6 +21,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [msalLoading, setMsalLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login, msalLogin, register, isAuthenticated, user } = useAuth();
 
@@ -265,14 +266,23 @@ const LoginPage = () => {
 
             <div className="space-y-2">
               <Label className="text-foreground text-sm">Password</Label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="bg-secondary/50 border-border text-foreground h-11 rounded-xl"
-              />
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="bg-secondary/50 border-border text-foreground h-11 rounded-xl pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             {isLogin && (
