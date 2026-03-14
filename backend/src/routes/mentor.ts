@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import prisma from "../lib/prisma";
 import { Prisma } from "@prisma/client";
 import { AuthRequest, authenticateToken, requireRole } from "../middleware/auth";
+import { sendMail } from "../lib/mailer";
 
 const router = Router();
 
@@ -515,6 +516,81 @@ router.get("/analytics", authenticateToken, requireRole("MENTOR"), async (req: A
     } catch (error: any) {
         console.error("Analytics error:", error);
         return res.status(500).json({ error: "Failed to load analytics" });
+    }
+});
+
+// POST /api/mentor/students/:id/alert — send email alert to student
+router.post("/students/:id/alert", authenticateToken, requireRole("MENTOR"), async (req: AuthRequest, res: Response) => {
+    try {
+        const studentId = req.params.id as string;
+        const { subject, message } = req.body;
+
+        if (!subject || !message) {
+            return res.status(400).json({ error: "Subject and message are required" });
+        }
+
+        const mentor = await prisma.mentor.findUnique({
+            where: { userId: req.user!.userId },
+            include: { user: { select: { name: true, email: true } } },
+        });
+
+        if (!mentor) return res.status(404).json({ error: "Mentor not found" });
+
+        const student = await prisma.student.findUnique({
+            where: { id: studentId },
+            include: { user: { select: { name: true, email: true, id: true } } },
+        });
+
+        if (!student) return res.status(404).json({ error: "Student not found" });
+
+        // Ensure mentor can only alert students in their section
+        if (student.section !== mentor.section) {
+            return res.status(403).json({ error: "You can only alert students in your designated section" });
+        }
+
+        // Format HTML Email
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                <div style="background-color: #2563eb; color: white; padding: 20px; text-align: center;">
+                    <h2 style="margin: 0;">Academic Alert: StuFolio</h2>
+                </div>
+                <div style="padding: 20px;">
+                    <p>Dear <strong>${student.user.name}</strong>,</p>
+                    <p>You have received a new alert from your mentor, <strong>${mentor.user.name}</strong>:</p>
+                    <div style="background-color: #f8fafc; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                        <h4 style="margin-top: 0; color: #0f172a;">${subject}</h4>
+                        <p style="margin-bottom: 0; color: #334155; white-space: pre-wrap;">${message}</p>
+                    </div>
+                    <p>Please log in to your <a href="http://localhost:8080" style="color: #2563eb; font-weight: bold;">StuFolio Dashboard</a> to review your academic standing and take necessary actions.</p>
+                </div>
+                <div style="background-color: #f1f5f9; padding: 15px; text-align: center; font-size: 12px; color: #64748b;">
+                    <p style="margin: 0;">This is an automated message from the StuFolio system.</p>
+                    <p style="margin: 5px 0 0 0;">Reply-To: ${mentor.user.email}</p>
+                </div>
+            </div>
+        `;
+
+        // Send Email via Nodemailer test account
+        await sendMail({
+            to: student.user.email,
+            subject: `[StuFolio] Alert from ${mentor.user.name}: ${subject}`,
+            html
+        });
+
+        // Save internal notification
+        await prisma.notification.create({
+            data: {
+                userId: student.user.id,
+                title: subject,
+                message: `Alert from ${mentor.user.name}: ${message}`,
+                category: "performance"
+            }
+        });
+
+        return res.json({ success: true, message: "Alert sent successfully" });
+    } catch (error: any) {
+        console.error("Mentor alert error:", error);
+        return res.status(500).json({ error: "Failed to send alert email" });
     }
 });
 

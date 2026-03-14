@@ -223,6 +223,13 @@ class ApiClient {
         return this.request<unknown>(`/students/${studentId}`);
     }
 
+    sendMentorAlert(studentId: string, subject: string, message: string) {
+        return this.request<{ success: boolean; message: string }>(`/mentor/students/${studentId}/alert`, {
+            method: "POST",
+            body: JSON.stringify({ subject, message }),
+        });
+    }
+
     getMentorAnalytics() {
         return this.request<unknown>("/mentor/analytics");
     }

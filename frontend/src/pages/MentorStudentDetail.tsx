@@ -32,6 +32,7 @@ import {
 } from "recharts";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
+import EmailAlertModal from "@/components/EmailAlertModal";
 import api from "@/lib/api";
 
 const tooltipStyle = {
@@ -47,6 +48,7 @@ const MentorStudentDetail = () => {
     const studentId = searchParams.get("id");
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchStudentData = async () => {
@@ -119,11 +121,21 @@ const MentorStudentDetail = () => {
 
     return (
         <DashboardLayout title="Student Detail" subtitle={`Detailed view — ${profile.name}`} role="mentor">
-            {/* Back button */}
-            <Link to="/mentor" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
-            </Link>
+            <div className="flex items-center justify-between mb-6">
+                {/* Back button */}
+                <Link to="/mentor" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <ArrowLeft className="h-4 w-4" />
+                    Back to Dashboard
+                </Link>
+
+                <button
+                    onClick={() => setIsAlertModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 border border-destructive/20 px-4 py-2 rounded-xl transition-colors"
+                >
+                    <Mail className="h-4 w-4" />
+                    Send Alert
+                </button>
+            </div>
 
             {/* Profile header */}
             <motion.div
@@ -266,6 +278,15 @@ const MentorStudentDetail = () => {
                     )}
                 </div>
             </motion.div>
+
+            {data && (
+                <EmailAlertModal
+                    isOpen={isAlertModalOpen}
+                    onClose={() => setIsAlertModalOpen(false)}
+                    studentId={studentId!}
+                    studentName={profile.name}
+                />
+            )}
         </DashboardLayout>
     );
 };
