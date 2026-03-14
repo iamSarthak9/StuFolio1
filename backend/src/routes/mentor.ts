@@ -350,26 +350,49 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
 
         console.log(`[DEBUG] Bulk attendance submit for date: ${attendanceDate.toISOString()}, records: ${records.length}`);
 
-        await prisma.$transaction(async (tx: any) => {
+        // 1. Fetch all students in this section to verify ownership and use for queries
+        const students = await prisma.student.findMany({
+            where: { section: mentor.section },
+            select: { id: true }
+        });
+        const studentIds = students.map(s => s.id);
+
+        // 2. Fetch all EXISTING DailyAttendance records for these students on this date
+        const existingDailyRecords = await (prisma as any).dailyAttendance.findMany({
+            where: {
+                studentId: { in: studentIds },
+                date: attendanceDate
+            }
+        });
+
+        // 3. Fetch all EXISTING Attendance summaries for these students
+        const existingSummaries = await prisma.attendance.findMany({
+            where: { studentId: { in: studentIds } }
+        });
+
+        // Create quick lookup maps
+        const dailyRecordMap = new Map(existingDailyRecords.map((r: any) => [`${r.studentId}_${r.subjectId}`, r]));
+        const summaryMap = new Map(existingSummaries.map((s: any) => [`${s.studentId}_${s.subjectId}`, s]));
+
+        // Transaction with extended timeout
+        await (prisma as any).$transaction(async (tx: any) => {
             for (const record of records) {
                 const { studentId, subjectId, status } = record;
 
-                // 1. Get existing record to know the transition
-                const existing = await tx.dailyAttendance.findUnique({
-                    where: {
-                        studentId_subjectId_date: { studentId, subjectId, date: attendanceDate }
-                    }
-                });
+                // Security check: only allow updating students in mentor's section
+                if (!studentIds.includes(studentId)) continue;
 
-                const oldStatus = existing ? existing.status : "NO_CLASS";
+                const key = `${studentId}_${subjectId}`;
+                const existing = dailyRecordMap.get(key);
+                const oldStatus = existing ? (existing as any).status : "NO_CLASS";
                 const newStatus = status;
 
                 if (oldStatus === newStatus) continue;
 
-                // 2. Update DailyAttendance
+                // Update DailyAttendance
                 if (newStatus === "NO_CLASS") {
                     if (existing) {
-                        await tx.dailyAttendance.delete({ where: { id: existing.id } });
+                        await tx.dailyAttendance.delete({ where: { id: (existing as any).id } });
                     }
                 } else {
                     await tx.dailyAttendance.upsert({
@@ -379,7 +402,7 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
                     });
                 }
 
-                // 3. Update summary (Attendance table)
+                // Update Summary
                 const updateData: any = {};
                 let createData = { studentId, subjectId, total: 1, attended: 0 };
 
@@ -405,6 +428,8 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
                     });
                 }
             }
+        }, {
+            timeout: 60000 // 60 seconds timeout for bulk operations
         });
 
         return res.json({ success: true });
