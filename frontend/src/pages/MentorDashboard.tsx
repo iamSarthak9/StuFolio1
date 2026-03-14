@@ -46,10 +46,10 @@ const statusMap: Record<string, { label: string; className: string }> = {
 };
 
 const tooltipStyle = {
-  background: "#ffffff",
-  border: "1px solid hsl(220, 13%, 91%)",
+  background: "hsl(var(--card))",
+  border: "1px solid hsl(var(--border))",
   borderRadius: "8px",
-  color: "hsl(220, 14%, 10%)",
+  color: "hsl(var(--foreground))",
 };
 
 const MentorDashboard = () => {
@@ -153,11 +153,11 @@ const MentorDashboard = () => {
           <p className="text-xs text-muted-foreground mb-4">Class-wide breakdown</p>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={cgpaDistribution}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" />
-              <XAxis dataKey="range" tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 10 }} axisLine={false} />
-              <YAxis tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 10 }} axisLine={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="range" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} axisLine={false} />
+              <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} axisLine={false} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="count" fill="hsl(234, 89%, 56%)" radius={[4, 4, 0, 0]} barSize={24} />
+              <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={24} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>
@@ -204,16 +204,16 @@ const MentorDashboard = () => {
             <AreaChart data={trendData}>
               <defs>
                 <linearGradient id="mc1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(234, 89%, 56%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(234, 89%, 56%)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" />
-              <XAxis dataKey="month" tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 10 }} axisLine={false} />
-              <YAxis tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 10 }} axisLine={false} domain={[60, 85]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="month" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} axisLine={false} />
+              <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} axisLine={false} domain={[60, 85]} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="current" stroke="hsl(234, 89%, 56%)" fill="url(#mc1)" strokeWidth={2} name="Current Batch" />
-              <Area type="monotone" dataKey="past" stroke="hsl(215, 15%, 40%)" fill="transparent" strokeWidth={2} strokeDasharray="4 4" name="Past Batch" />
+              <Area type="monotone" dataKey="current" stroke="hsl(var(--primary))" fill="url(#mc1)" strokeWidth={2} name="Current Batch" />
+              <Area type="monotone" dataKey="past" stroke="hsl(var(--muted-foreground))" fill="transparent" strokeWidth={2} strokeDasharray="4 4" name="Past Batch" />
             </AreaChart>
           </ResponsiveContainer>
           <div className="flex items-center justify-center gap-4 mt-2">

@@ -21,9 +21,12 @@ import {
   Menu,
   X,
   GraduationCap,
+  Sun,
+  Moon,
 } from "lucide-react";
 import NotificationCenter from "./NotificationCenter";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "./theme-provider";
 
 const studentNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -60,6 +63,7 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -188,6 +192,15 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
                 className="h-9 w-56 rounded-lg border border-border bg-secondary/50 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all"
               />
             </div>
+
+            {/* Theme Toggle */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="h-9 w-9 rounded-lg flex items-center justify-center border border-border bg-secondary/50 text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all"
+              title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
 
             {/* Notifications */}
             <div className="relative">
