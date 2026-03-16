@@ -6,8 +6,8 @@ A comprehensive student portfolio & analytics platform for colleges — tracking
 
 ```
 StuFolio/
-├── frontend/    # React + Vite + TypeScript + Tailwind CSS + shadcn/ui
-├── backend/     # Node.js + Express + TypeScript + Prisma + SQLite
+├── frontend/    # React + Vite + TypeScript + Tailwind CSS (Vercel)
+├── backend/     # Node.js + Express + TypeScript + Prisma + Supabase (Render)
 └── README.md
 ```
 
@@ -53,9 +53,9 @@ npm run dev                # Start dev server on port 8080
 
 ## Tech Stack
 
-- **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui, Recharts, Framer Motion
-- **Backend**: Node.js, Express, TypeScript, Prisma ORM
-- **Database**: SQLite (dev) — easily switchable to PostgreSQL
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS, shadcn/ui (Deployed on **Vercel**)
+- **Backend**: Node.js, Express, TypeScript, Prisma ORM (Deployed on **Render**)
+- **Database**: PostgreSQL (**Supabase**)
 
 ## License
 
