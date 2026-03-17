@@ -63,10 +63,11 @@ const fadeUp = {
 };
 
 const tooltipStyle = {
-  background: "#ffffff",
-  border: "1px solid hsl(220, 13%, 91%)",
-  borderRadius: "8px",
-  color: "hsl(220, 14%, 10%)",
+  background: "hsl(0 0% 100%)",
+  border: "1px solid hsl(37 16% 83%)",
+  borderRadius: "10px",
+  color: "hsl(0 0% 17%)",
+  boxShadow: "0 4px 12px hsl(30 10% 15% / 0.1)",
 };
 
 const StudentDashboard = () => {
@@ -224,7 +225,9 @@ const StudentDashboard = () => {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="rounded-xl border border-border bg-card p-5 card-hover"
+            className={`rounded-xl border border-border p-5 card-hover ${
+              i === 1 || i === 3 ? "sticky-card" : "bg-card shadow-card"
+            }`}
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
@@ -333,34 +336,34 @@ const StudentDashboard = () => {
               <AreaChart data={performanceData}>
                 <defs>
                   <linearGradient id="colorCgpa" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(234, 89%, 56%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(234, 89%, 56%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(16 64% 54%)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="hsl(16 64% 54%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" />
-                <XAxis dataKey="week" tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 12 }} axisLine={false} />
-                <YAxis tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 12 }} axisLine={false} domain={[6, 10]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(37 16% 83%)" />
+                <XAxis dataKey="week" tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} />
+                <YAxis tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} domain={[6, 10]} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="cgpa" stroke="hsl(234, 89%, 56%)" fill="url(#colorCgpa)" strokeWidth={2} name="CGPA" />
+                <Area type="monotone" dataKey="cgpa" stroke="hsl(16 64% 54%)" fill="url(#colorCgpa)" strokeWidth={2} name="CGPA" />
               </AreaChart>
             ) : (
               <AreaChart data={performanceDataFallback}>
                 <defs>
                   <linearGradient id="colorCoding" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(234, 89%, 56%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(234, 89%, 56%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(16 64% 54%)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="hsl(16 64% 54%)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorAcademic" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(172, 66%, 40%)" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(172, 66%, 40%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(45 55% 60%)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="hsl(45 55% 60%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" />
-                <XAxis dataKey="week" tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 12 }} axisLine={false} />
-                <YAxis tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 12 }} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(37 16% 83%)" />
+                <XAxis dataKey="week" tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} />
+                <YAxis tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="coding" stroke="hsl(234, 89%, 56%)" fill="url(#colorCoding)" strokeWidth={2} name="Coding" />
-                <Area type="monotone" dataKey="academic" stroke="hsl(172, 66%, 40%)" fill="url(#colorAcademic)" strokeWidth={2} name="Academic" />
+                <Area type="monotone" dataKey="coding" stroke="hsl(16 64% 54%)" fill="url(#colorCoding)" strokeWidth={2} name="Coding" />
+                <Area type="monotone" dataKey="academic" stroke="hsl(45 55% 60%)" fill="url(#colorAcademic)" strokeWidth={2} name="Academic" />
               </AreaChart>
             )}
           </ResponsiveContainer>
@@ -377,11 +380,11 @@ const StudentDashboard = () => {
           <p className="text-xs text-muted-foreground mb-6">Internal assessment breakdown</p>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={subjectDataFallback} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" horizontal={false} />
-              <XAxis type="number" tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 12 }} axisLine={false} domain={[0, 100]} />
-              <YAxis type="category" dataKey="subject" tick={{ fill: "hsl(220, 9%, 46%)", fontSize: 12 }} axisLine={false} width={50} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(37 16% 83%)" horizontal={false} />
+              <XAxis type="number" tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} domain={[0, 100]} />
+              <YAxis type="category" dataKey="subject" tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} width={50} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Bar dataKey="score" fill="hsl(234, 89%, 56%)" radius={[0, 6, 6, 0]} barSize={18} />
+              <Bar dataKey="score" fill="hsl(16 64% 54%)" radius={[0, 6, 6, 0]} barSize={18} />
             </BarChart>
           </ResponsiveContainer>
         </motion.div>

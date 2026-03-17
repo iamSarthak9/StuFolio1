@@ -88,7 +88,7 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
       <motion.aside
         animate={{ width: collapsed ? 72 : 256 }}
         transition={{ duration: 0.2 }}
-        className={`fixed left-0 top-0 bottom-0 z-50 flex flex-col border-r border-border bg-card/95 backdrop-blur-xl
+        className={`fixed left-0 top-0 bottom-0 z-50 flex flex-col border-r border-border bg-secondary/95 backdrop-blur-xl
           ${mobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 transition-transform lg:transition-none`}
       >
         {/* Logo */}
@@ -125,19 +125,14 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
                 key={item.path}
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
-                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${active
-                  ? "bg-primary/10 text-primary shadow-sm"
-                  : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-                  }`}
+                className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+                  active
+                    ? "nav-active-bar"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                }`}
               >
                 <item.icon className={`h-[18px] w-[18px] shrink-0 transition-colors ${active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"}`} />
                 {!collapsed && <span>{item.label}</span>}
-                {active && !collapsed && (
-                  <motion.div
-                    layoutId="activeNav"
-                    className="ml-auto h-1.5 w-1.5 rounded-full bg-primary"
-                  />
-                )}
               </Link>
             );
           })}

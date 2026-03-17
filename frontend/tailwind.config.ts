@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Lora", "serif"],
+        display: ["Caveat", "cursive"],
         body: ["Inter", "sans-serif"],
       },
       colors: {
@@ -76,11 +76,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        "sticky-note": "hsl(var(--sticky-note))",
+        "sticky-note-foreground": "hsl(var(--sticky-note-foreground))",
+        highlight: "hsl(var(--highlight))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      transitionDuration: {
+        "250": "250ms",
       },
       keyframes: {
         "accordion-down": {
