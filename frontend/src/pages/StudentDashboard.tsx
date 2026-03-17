@@ -96,18 +96,72 @@ const StudentDashboard = () => {
 
   const userName = data?.profile?.name || user?.name || "Student";
 
-  // Use API data or fallback
-  const statCards = data?.statCards
-    ? data.statCards.map((s: any) => ({
-      ...s,
-      icon: iconMap[s.icon] || TrendingUp,
-    }))
-    : [
-      { label: "Performance Index", value: "—", change: "Loading...", icon: TrendingUp, accent: "primary" },
-      { label: "Current CGPA", value: "—", change: "Loading...", icon: GraduationCap, accent: "accent" },
-      { label: "Problems Solved", value: "—", change: "Loading...", icon: Code, accent: "chart-3" },
-      { label: "Day Streak", value: "—", change: "Loading...", icon: Flame, accent: "warning" },
-    ];
+  // ── Derive real stats from coding profiles ──────────────────────────────
+  const codingProfiles = data?.codingProfiles || [];
+
+  /** Sum all "solved / total solved / problems solved" stats across every platform */
+  const totalProblemsSolved = (() => {
+    const SOLVE_LABELS = ["solved", "problems solved", "total solved", "total problems", "questions solved"];
+    let total = 0;
+    codingProfiles.forEach((p: any) => {
+      (p.stats || []).forEach((s: any) => {
+        if (SOLVE_LABELS.some((kw) => s.label?.toLowerCase().includes(kw))) {
+          const n = parseInt(String(s.value).replace(/[^0-9]/g, ""), 10);
+          if (!isNaN(n)) total += n;
+        }
+      });
+    });
+    return total > 0 ? total : null;
+  })();
+
+  /** Compute current streak from combined activityData (same data the heatmap uses) */
+  const currentStreak = (() => {
+    const combined: Record<string, number> = {};
+    codingProfiles.forEach((p: any) => {
+      if (p.activityData && typeof p.activityData === "object") {
+        Object.entries(p.activityData).forEach(([date, count]) => {
+          combined[date] = (combined[date] || 0) + (count as number);
+        });
+      }
+    });
+    const fmt = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${dd}`;
+    };
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    // Accept streak if today has no activity yet (count yesterday as "start")
+    let cursor = new Date(today);
+    if (!combined[fmt(cursor)]) cursor.setDate(cursor.getDate() - 1);
+    let streak = 0;
+    while (combined[fmt(cursor)] > 0) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak > 0 ? streak : null;
+  })();
+
+  // ── Stat cards (API data wins; patch Problems Solved & Day Streak with real numbers) ──
+  const statCards = (() => {
+    const base = data?.statCards
+      ? data.statCards.map((s: any) => ({ ...s, icon: iconMap[s.icon] || TrendingUp }))
+      : [
+          { label: "Performance Index", value: "—", change: "Loading...", icon: TrendingUp, accent: "primary" },
+          { label: "Current CGPA",      value: "—", change: "Loading...", icon: GraduationCap, accent: "accent" },
+          { label: "Problems Solved",   value: "—", change: "Loading...", icon: Code,         accent: "chart-3" },
+          { label: "Day Streak",        value: "—", change: "Loading...", icon: Flame,         accent: "warning" },
+        ];
+
+    return base.map((s: any) => {
+      if (s.label === "Problems Solved" && totalProblemsSolved !== null)
+        return { ...s, value: totalProblemsSolved.toLocaleString(), change: `Across ${codingProfiles.length} platform${codingProfiles.length !== 1 ? "s" : ""}` };
+      if (s.label === "Day Streak" && currentStreak !== null)
+        return { ...s, value: `${currentStreak}d`, change: currentStreak >= 7 ? "🔥 Keep it going!" : "From heatmap activity" };
+      return s;
+    });
+  })();
 
   const warnings = data?.warnings || [];
   const badges = data?.badges
@@ -117,7 +171,7 @@ const StudentDashboard = () => {
       earned: true,
     }))
     : [];
-  const codingProfiles = data?.codingProfiles || [];
+
 
   const performanceData = data?.performanceTrend?.length
     ? data.performanceTrend.map((d: any, i: number) => ({
