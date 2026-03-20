@@ -8,74 +8,70 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ─── Auth & Users ────────────────────────────────────────
 model User {
   id            String         @id @default(uuid())
   email         String         @unique
   password      String
   name          String
-  role          String         // STUDENT | MENTOR
+  role          String
   createdAt     DateTime       @default(now())
-  student       Student?
   mentor        Mentor?
   notifications Notification[]
+  student       Student?
 }
 
-// ─── Student ─────────────────────────────────────────────
 model Student {
-  id             String           @id @default(uuid())
-  userId         String           @unique
-  user           User             @relation(fields: [userId], references: [id])
-  enrollment     String           @unique
-  section        String
-  semester       String
-  branch         String
-  year           String
-  cgpa           Float            @default(0)
-  rank           Int?
-  totalStudents  Int?
-  performanceIdx Float?
-  codingScore    Int?
-  streak         Int              @default(0)
-  semesterCGPAs  SemesterCGPA[]
-  academicRecords AcademicRecord[]
-  attendances    Attendance[]
-  dailyAttendances DailyAttendance[]
-  codingProfiles CodingProfile[]
-  badges         Badge[]
-  skills         StudentSkill[]
+  id               String            @id @default(uuid())
+  userId           String            @unique
+  enrollment       String            @unique
+  section          String
+  semester         String
+  branch           String
+  year             String
+  cgpa             Float             @default(0)
+  rank             Int?
+  totalStudents    Int?
+  performanceIdx   Float?
+  codingScore      Int?
+  streak           Int               @default(0)
   verificationCode String?           @unique
-}
-
-// ─── Mentor ──────────────────────────────────────────────
-model Mentor {
-  id          String @id @default(uuid())
-  userId      String @unique
-  user        User   @relation(fields: [userId], references: [id])
-  teacherId   String? @unique
-  department  String
-  designation String
-  section     String // Section this mentor oversees
+  academicRecords  AcademicRecord[]
+  attendances      Attendance[]
+  badges           Badge[]
+  codingProfiles   CodingProfile[]
   dailyAttendances DailyAttendance[]
+  semesterCGPAs    SemesterCGPA[]
+  user             User              @relation(fields: [userId], references: [id])
+  skills           StudentSkill[]
 }
 
-// ─── Academic ────────────────────────────────────────────
+model Mentor {
+  id               String            @id @default(uuid())
+  userId           String            @unique
+  teacherId        String?           @unique
+  department       String
+  designation      String
+  section          String
+  dailyAttendances DailyAttendance[]
+  user             User              @relation(fields: [userId], references: [id])
+}
+
 model Subject {
-  id              String           @id @default(uuid())
-  name            String
-  code            String           @unique
-  semester        String
-  academicRecords AcademicRecord[]
-  attendances     Attendance[]
+  id               String            @id @default(uuid())
+  name             String
+  code             String            @unique
+  semester         String
+  academicRecords  AcademicRecord[]
+  attendances      Attendance[]
   dailyAttendances DailyAttendance[]
 }
 
 model SemesterCGPA {
   id        String  @id @default(uuid())
   studentId String
-  student   Student @relation(fields: [studentId], references: [id])
   semester  String
   cgpa      Float
+  student   Student @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, semester])
 }
@@ -83,26 +79,25 @@ model SemesterCGPA {
 model AcademicRecord {
   id        String  @id @default(uuid())
   studentId String
-  student   Student @relation(fields: [studentId], references: [id])
   subjectId String
-  subject   Subject @relation(fields: [subjectId], references: [id])
   marks     Float
   maxMarks  Float   @default(100)
   grade     String?
   semester  String
+  student   Student @relation(fields: [studentId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId, semester])
 }
 
-// ─── Attendance ──────────────────────────────────────────
 model Attendance {
   id        String  @id @default(uuid())
   studentId String
-  student   Student @relation(fields: [studentId], references: [id])
   subjectId String
-  subject   Subject @relation(fields: [subjectId], references: [id])
   attended  Int
   total     Int
+  student   Student @relation(fields: [studentId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId])
 }
@@ -110,44 +105,41 @@ model Attendance {
 model DailyAttendance {
   id        String   @id @default(uuid())
   studentId String
-  student   Student  @relation(fields: [studentId], references: [id])
   subjectId String
-  subject   Subject  @relation(fields: [subjectId], references: [id])
   date      DateTime @default(now())
-  status    String   // PRESENT | ABSENT
+  status    String
   mentorId  String
   mentor    Mentor   @relation(fields: [mentorId], references: [id])
+  student   Student  @relation(fields: [studentId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId, date])
 }
 
-// ─── Coding Profiles ─────────────────────────────────────
 model CodingProfile {
   id           String   @id @default(uuid())
   studentId    String
-  student      Student  @relation(fields: [studentId], references: [id])
-  platform     String   // LeetCode | Codeforces | GitHub
+  platform     String
   handle       String
-  stats        String   // JSON string: [{label, value}]
+  stats        String
   verified     Boolean  @default(false)
   lastSynced   DateTime @default(now())
-  activityData Json?    // Stores { "timestamp": count } activity mapping
+  activityData Json?
+  student      Student  @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, platform])
 }
 
-// ─── Badges ──────────────────────────────────────────────
 model Badge {
   id          String  @id @default(uuid())
   studentId   String
-  student     Student @relation(fields: [studentId], references: [id])
   label       String
   description String
   icon        String  @default("Award")
   earned      Boolean @default(false)
+  student     Student @relation(fields: [studentId], references: [id])
 }
 
-// ─── Skills ──────────────────────────────────────────────
 model Skill {
   id       String         @id @default(uuid())
   name     String         @unique
@@ -157,32 +149,30 @@ model Skill {
 model StudentSkill {
   id        String  @id @default(uuid())
   studentId String
-  student   Student @relation(fields: [studentId], references: [id])
   skillId   String
   skill     Skill   @relation(fields: [skillId], references: [id])
+  student   Student @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, skillId])
 }
 
-// ─── Events ──────────────────────────────────────────────
 model Event {
   id          String   @id @default(uuid())
   title       String
   description String?
   date        DateTime
-  type        String   // contest | deadline | exam | hackathon
-  platform    String?  // LeetCode, Codeforces, etc.
+  type        String
+  platform    String?
   link        String?
 }
 
-// ─── Notifications ───────────────────────────────────────
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   title     String
   message   String
-  category  String   // performance | attendance | deadline | system
+  category  String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }

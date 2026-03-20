@@ -23,76 +23,86 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
             orderBy: { date: "asc" },
         });
 
-        // 2. Fetch external contests from Kontests API
-        let externalEvents: any[] = [];
+        // 2. Fetch external contests from multiple reliable sources
         try {
-            const response = await (global as any).fetch("https://kontests.net/api/v1/all");
-            if (response.ok) {
-                const contests = await response.json() as any;
-                
-                // Platforms we care about
-                const targets = ["LeetCode", "CodeForces", "CodeChef", "HackerRank", "AtCoder"];
-                
-                externalEvents = contests
-                    .filter((c: any) => targets.includes(c.site))
-                    .map((c: any) => {
-                        const durationSeconds = parseInt(c.duration);
-                        const h = Math.floor(durationSeconds / 3600);
-                        const m = Math.floor((durationSeconds % 3600) / 60);
-                        const durationStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+            const now = new Date();
+            const requestedDate = month && year ? new Date(Number(year), Number(month) - 1, 1) : now;
+            
+            // Check if we need to refresh cache (if fewer than 10 external events in DB for requested range)
+            const existingExternalCount = await prisma.event.count({
+                where: {
+                    ...where,
+                    platform: { not: null }
+                }
+            });
 
-                        return {
-                            id: `ext-${c.name}-${c.start_time}`,
-                            title: c.name,
-                            description: `Platform: ${c.site} | Status: ${c.status}`,
-                            date: new Date(c.start_time),
-                            type: "contest",
-                            platform: c.site,
-                            link: c.url,
-                            duration: durationStr,
-                        };
-                    });
+            if (existingExternalCount < 10) { 
+                const newExternal: any[] = [];
                 
-                // If filtering by date, apply it to external events too
-                if (month && year) {
-                    const startDate = new Date(Number(year), Number(month) - 1, 1);
-                    const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
-                    externalEvents = externalEvents.filter(e => e.date >= startDate && e.date <= endDate);
+                // --- SOURCE A: Codeforces Official API (Very Reliable) ---
+                try {
+                    const cfResponse = await (global as any).fetch("https://codeforces.com/api/contest.list?gym=false");
+                    if (cfResponse.ok) {
+                        const data = await cfResponse.json();
+                        if (data.status === "OK") {
+                            const cfContests = data.result
+                                .filter((c: any) => c.phase === "BEFORE" || c.phase === "CODING")
+                                .map((c: any) => ({
+                                    title: c.name,
+                                    description: `${Math.floor(c.durationSeconds / 3600)}h ${Math.floor((c.durationSeconds % 3600) / 60)}m`,
+                                    date: new Date(c.startTimeSeconds * 1000),
+                                    type: "contest",
+                                    platform: "Codeforces",
+                                    link: `https://codeforces.com/contests/${c.id}`,
+                                }));
+                            newExternal.push(...cfContests);
+                        }
+                    }
+                } catch (e) { console.error("CF API Error:", e); }
+
+                // --- SOURCE B: Kontests (Fallback for Multi-platform) ---
+                try {
+                    const kontestsResponse = await (global as any).fetch("https://kontests.net/api/v1/all");
+                    if (kontestsResponse.ok) {
+                        const contests = await kontestsResponse.json();
+                        const targets = ["LeetCode", "CodeChef", "AtCoder", "HackerRank"];
+                        const kContests = contests
+                            .filter((c: any) => targets.includes(c.site.trim()) && !newExternal.some(e => e.title === c.name))
+                            .map((c: any) => ({
+                                title: c.name,
+                                description: `${Math.floor(parseInt(c.duration) / 3600)}h ${Math.floor((parseInt(c.duration) % 3600) / 60)}m`,
+                                date: new Date(c.start_time),
+                                type: "contest",
+                                platform: c.site,
+                                link: c.url,
+                            }));
+                        newExternal.push(...kContests);
+                    }
+                } catch (e) { console.error("Kontests Error:", e); }
+
+                // Batch Cache
+                for (const ext of newExternal) {
+                    try {
+                        const exists = await prisma.event.findFirst({
+                            where: { title: ext.title, date: ext.date, platform: ext.platform }
+                        });
+                        if (!exists) {
+                            await prisma.event.create({ data: ext });
+                        }
+                    } catch (err) { /* ignore duplicates */ }
                 }
             }
+
+            // Return everything from DB (Cached + Local)
+            return res.json(await prisma.event.findMany({
+                where,
+                orderBy: { date: "asc" },
+            }));
+
         } catch (apiErr) {
-            console.error("Failed to fetch external contests (API Down/Blocked):", apiErr);
-            // Fallback for demo purposes if API is down
-            externalEvents = [
-                {
-                    id: "fb-lc-weekly",
-                    title: "LeetCode Weekly Contest",
-                    description: "Weekly coding competition on LeetCode",
-                    date: new Date(new Date().setDate(new Date().getDate() + (7 - new Date().getDay()) % 7)), // Next Sunday
-                    type: "contest",
-                    platform: "LeetCode",
-                    link: "https://leetcode.com/contest",
-                    duration: "1h 30m"
-                },
-                {
-                    id: "fb-cf-div2",
-                    title: "Codeforces Round (Div. 2)",
-                    description: "Regular competitive programming round",
-                    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // In 2 days
-                    type: "contest",
-                    platform: "Codeforces",
-                    link: "https://codeforces.com/contests",
-                    duration: "2h 0m"
-                }
-            ];
+            console.error("Master fetch/cache error:", apiErr);
+            return res.json(dbEvents);
         }
-
-        // 3. Merge and Sort
-        const allEvents = [...dbEvents, ...externalEvents].sort((a, b) => 
-            new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
-
-        return res.json(allEvents);
     } catch (error: any) {
         console.error("Events error:", error);
         return res.status(500).json({ error: "Failed to load events" });

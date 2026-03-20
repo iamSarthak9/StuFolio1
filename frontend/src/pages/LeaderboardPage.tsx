@@ -188,7 +188,7 @@ const LeaderboardPage = () => {
                     <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">CGPA</th>
                     <th className="text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Score</th>
                     <th className="hidden md:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Streak</th>
-                    <th className="hidden lg:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Att.</th>
+                    <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Att.</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -237,8 +237,8 @@ const LeaderboardPage = () => {
                             <span className="text-xs text-muted-foreground">—</span>
                           )}
                         </td>
-                        <td className="hidden lg:table-cell px-4 py-3.5">
-                          <span className={`text-xs font-bold ${student.attendance >= 75 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-500"}`}>
+                        <td className="hidden sm:table-cell px-4 py-3.5">
+                          <span className={`text-xs font-black ${student.attendance >= 75 ? "text-emerald-500" : "text-red-500"}`}>
                             {student.attendance}%
                           </span>
                         </td>

@@ -24,7 +24,7 @@ const CountdownBanner = ({ targetDate }: { targetDate: string | Date }) => {
     useEffect(() => {
         const calculate = () => {
             const diff = new Date(targetDate).getTime() - new Date().getTime();
-            if (diff <= 0) return "Live Now / Passed";
+            if (diff <= 0) return "LIVE NOW";
             
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -41,14 +41,19 @@ const CountdownBanner = ({ targetDate }: { targetDate: string | Date }) => {
     }, [targetDate]);
 
     return (
-        <div className="bg-amber-100 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-                    <Timer className="h-5 w-5 text-amber-600 dark:text-amber-400 animate-pulse" />
+        <div className="bg-[#FACC15] p-5 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-black/10 flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-black" />
                 </div>
                 <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-500">Starts in</p>
-                    <p className="font-mono font-bold text-lg text-amber-900 dark:text-amber-200 tabular-nums">{timeLeft}</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.2em] text-black/60">Contest starts in</p>
+                    <p className="font-mono font-black text-2xl text-black tabular-nums">{timeLeft}</p>
+                </div>
+            </div>
+            <div className="hidden sm:block">
+                <div className="px-3 py-1 bg-black text-[#FACC15] text-[10px] font-black rounded-full uppercase tracking-widest">
+                    Upcoming
                 </div>
             </div>
         </div>
@@ -59,61 +64,68 @@ const ContestModal: React.FC<ContestModalProps> = ({ isOpen, onClose, contest })
     if (!contest) return null;
 
     const dateObj = new Date(contest.date);
-    const endDate = contest.duration ? new Date(dateObj.getTime() + 2 * 60 * 60 * 1000) : null; // Estimate if not provided
 
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/90 backdrop-blur-md"
                     />
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden"
+                        exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                        className="relative w-full max-w-lg bg-[#0A0A0A] border border-[#27272A] rounded-2xl shadow-3xl overflow-hidden"
                     >
-                        {/* Header */}
-                        <div className="p-6 pb-0 flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <PlatformIcon platform={contest.platform} className="h-5 w-5" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{contest.platform || contest.type}</span>
-                                </div>
-                                <h2 className="text-xl font-display font-bold text-foreground leading-tight">
-                                    {contest.title}
-                                </h2>
-                            </div>
-                            <button onClick={onClose} className="h-8 w-8 rounded-full hover:bg-secondary flex items-center justify-center transition-colors">
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
+                        {/* Countdown Banner */}
+                        <CountdownBanner targetDate={contest.date} />
 
                         {/* Content */}
-                        <div className="p-6">
-                            <CountdownBanner targetDate={contest.date} />
+                        <div className="p-8">
+                            <div className="flex items-start justify-between mb-8">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <PlatformIcon platform={contest.platform} className="h-6 w-6" />
+                                        <span className="text-[12px] font-bold uppercase tracking-widest text-[#A1A1AA]">{contest.platform}</span>
+                                    </div>
+                                    <h2 className="text-2xl font-display font-black text-white leading-tight pr-8">
+                                        {contest.title}
+                                    </h2>
+                                </div>
+                                <button onClick={onClose} className="h-10 w-10 rounded-full bg-[#1A1A1A] border border-[#27272A] text-[#A1A1AA] hover:text-white flex items-center justify-center transition-all absolute top-6 right-6 z-10">
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
 
-                            <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div className="p-3 rounded-xl bg-secondary/50 border border-border">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Start</p>
-                                    <p className="text-sm font-semibold">{dateObj.toLocaleDateString()} {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                            <div className="grid grid-cols-2 gap-px bg-[#27272A] border border-[#27272A] rounded-xl overflow-hidden mb-10">
+                                <div className="bg-[#111111] p-5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-2">Starts at</p>
+                                    <p className="text-[15px] font-bold text-white leading-none">
+                                        {dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </p>
+                                    <p className="text-sm text-[#A1A1AA] mt-1.5">
+                                        {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
                                 </div>
-                                <div className="p-3 rounded-xl bg-secondary/50 border border-border">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Duration</p>
-                                    <p className="text-sm font-semibold">{contest.duration || "N/A"}</p>
+                                <div className="bg-[#111111] p-5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-2">Duration</p>
+                                    <div className="flex items-center gap-2">
+                                        <Timer className="h-4 w-4 text-primary" />
+                                        <p className="text-[15px] font-bold text-white">{contest.duration || "2h 00m"}</p>
+                                    </div>
                                 </div>
-                                <div className="p-3 rounded-xl bg-secondary/50 border border-border">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Status</p>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-primary">UPCOMING</span>
+                                <div className="bg-[#111111] p-5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-2">Platform</p>
+                                    <p className="text-[15px] font-bold text-white">{contest.platform}</p>
                                 </div>
-                                <div className="p-3 rounded-xl bg-secondary/50 border border-border">
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">Type</p>
-                                    <p className="text-sm font-semibold capitalize">{contest.type}</p>
+                                <div className="bg-[#111111] p-5">
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#A1A1AA] mb-2">Registration</p>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase tracking-tighter">Open</span>
                                 </div>
                             </div>
 
@@ -122,9 +134,12 @@ const ContestModal: React.FC<ContestModalProps> = ({ isOpen, onClose, contest })
                                     href={contest.link} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                                    className="block w-full"
                                 >
-                                    Register on {contest.platform} <ExternalLink className="h-4 w-4" />
+                                    <button className="w-full h-14 rounded-xl bg-white text-black font-black text-base flex items-center justify-center gap-3 hover:bg-[#FACC15] hover:text-black transition-all group">
+                                        Navigate to {contest.platform} 
+                                        <ExternalLink className="h-5 w-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                    </button>
                                 </a>
                             )}
                         </div>
