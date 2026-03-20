@@ -279,8 +279,8 @@ const StudentDashboard = () => {
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className={`rounded-xl border border-border p-5 card-hover ${
-              i === 1 || i === 3 ? "sticky-card" : "bg-card shadow-card"
+            className={`rounded-xl border border-border p-5 text-card-foreground shadow-sm bg-card card-hover ${
+              i === 1 || i === 3 ? "tech-card" : ""
             }`}
           >
             <div className="flex items-center justify-between mb-3">
@@ -304,10 +304,10 @@ const StudentDashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-orange-500/5 to-transparent p-5 mb-8"
+        className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-5 mb-8"
       >
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center shadow-glow shrink-0">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -390,34 +390,34 @@ const StudentDashboard = () => {
               <AreaChart data={performanceData}>
                 <defs>
                   <linearGradient id="colorCgpa" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(16 64% 54%)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="hsl(16 64% 54%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(24.6 95% 53.1%)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="hsl(24.6 95% 53.1%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(37 16% 83%)" />
-                <XAxis dataKey="week" tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} />
-                <YAxis tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} domain={[6, 10]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="week" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} domain={[6, 10]} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="cgpa" stroke="hsl(16 64% 54%)" fill="url(#colorCgpa)" strokeWidth={2} name="CGPA" />
+                <Area type="monotone" dataKey="cgpa" stroke="hsl(24.6 95% 53.1%)" fill="url(#colorCgpa)" strokeWidth={2} name="CGPA" />
               </AreaChart>
             ) : (
               <AreaChart data={performanceDataFallback}>
                 <defs>
                   <linearGradient id="colorCoding" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(16 64% 54%)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="hsl(16 64% 54%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(24.6 95% 53.1%)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="hsl(24.6 95% 53.1%)" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorAcademic" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(45 55% 60%)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="hsl(45 55% 60%)" stopOpacity={0} />
+                    <stop offset="5%" stopColor="hsl(200 70% 50%)" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="hsl(200 70% 50%)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(37 16% 83%)" />
-                <XAxis dataKey="week" tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} />
-                <YAxis tick={{ fill: "hsl(30 6% 45%)", fontSize: 12 }} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="week" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="coding" stroke="hsl(16 64% 54%)" fill="url(#colorCoding)" strokeWidth={2} name="Coding" />
-                <Area type="monotone" dataKey="academic" stroke="hsl(45 55% 60%)" fill="url(#colorAcademic)" strokeWidth={2} name="Academic" />
+                <Area type="monotone" dataKey="coding" stroke="hsl(24.6 95% 53.1%)" fill="url(#colorCoding)" strokeWidth={2} name="Coding" />
+                <Area type="monotone" dataKey="academic" stroke="hsl(200 70% 50%)" fill="url(#colorAcademic)" strokeWidth={2} name="Academic" />
               </AreaChart>
             )}
           </ResponsiveContainer>

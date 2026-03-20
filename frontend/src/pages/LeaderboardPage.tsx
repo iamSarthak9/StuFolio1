@@ -143,7 +143,7 @@ const LeaderboardPage = () => {
                       <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Rank #{pos}</p>
                     </div>
                     <p className="text-sm font-semibold text-foreground truncate max-w-[120px] sm:max-w-none">{student.name}</p>
-                    <p className="text-xl font-display font-bold text-gradient-primary mt-0.5">{score}</p>
+                    <p className="text-xl font-display font-bold text-primary italic mt-0.5">{score}</p>
                   </div>
                 </motion.div>
               );
@@ -223,7 +223,7 @@ const LeaderboardPage = () => {
                         <td className="px-3 sm:px-4 py-3.5 text-xs sm:text-sm text-muted-foreground table-cell">{student.problemsSolved}</td>
                         <td className="hidden sm:table-cell px-4 py-3.5 text-sm text-muted-foreground">{student.cgpa}</td>
                         <td className="px-3 sm:px-4 py-3.5">
-                          <span className="text-xs sm:text-sm font-display font-bold text-gradient-primary">
+                          <span className="text-xs sm:text-sm font-display font-bold text-primary italic">
                             {student.compositeScore}
                           </span>
                         </td>

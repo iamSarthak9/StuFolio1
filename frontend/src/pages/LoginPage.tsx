@@ -93,7 +93,7 @@ const LoginPage = () => {
 
         <div className="relative z-10 p-12 max-w-lg">
           <Link to="/" className="flex items-center gap-2.5 mb-16">
-            <div className="h-11 w-11 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+            <div className="h-11 w-11 rounded-xl bg-primary flex items-center justify-center shadow-glow">
               <span className="text-base font-extrabold text-white">S</span>
             </div>
             <span className="font-display text-2xl font-bold text-foreground tracking-tight">StuFolio</span>
@@ -102,7 +102,7 @@ const LoginPage = () => {
           <h2 className="text-4xl font-display font-bold mb-4 text-foreground leading-tight">
             Your campus growth,
             <br />
-            <span className="text-gradient-primary">quantified.</span>
+            <span className="text-primary italic">quantified.</span>
           </h2>
           <p className="text-muted-foreground text-lg mb-12">
             Track academic + coding performance. Compete on leaderboards. Get AI-powered insights.
@@ -137,7 +137,7 @@ const LoginPage = () => {
           {/* Mobile logo */}
           <div className="lg:hidden mb-8">
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+              <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-glow">
                 <span className="text-sm font-extrabold text-white">S</span>
               </div>
               <span className="font-display text-xl font-bold text-foreground tracking-tight">StuFolio</span>
@@ -299,7 +299,7 @@ const LoginPage = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-primary text-white hover:opacity-90 shadow-glow h-11 mt-2 rounded-xl text-sm font-semibold"
+              className="w-full bg-primary text-white hover:opacity-90 shadow-glow h-11 mt-2 rounded-xl text-sm font-semibold"
             >
               {loading ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait...</>

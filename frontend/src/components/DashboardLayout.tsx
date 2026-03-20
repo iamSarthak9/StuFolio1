@@ -95,7 +95,7 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
         <div className="flex h-16 items-center justify-between px-4 border-b border-border/50">
           {!collapsed && (
             <Link to="/" className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-glow">
+              <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-glow">
                 <span className="text-sm font-extrabold text-white">S</span>
               </div>
               <div>
@@ -107,7 +107,7 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
             </Link>
           )}
           {collapsed && (
-            <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center mx-auto shadow-glow">
+            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center mx-auto shadow-glow">
               <span className="text-sm font-extrabold text-white">S</span>
             </div>
           )}
@@ -203,7 +203,7 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
             </div>
 
             {/* Avatar */}
-            <div className="h-9 w-9 rounded-lg bg-gradient-primary flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:shadow-glow transition-all">
+            <div className="h-9 w-9 rounded-lg bg-primary flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:shadow-glow transition-all">
               {role === "mentor" ? "DS" : "NG"}
             </div>
           </div>
