@@ -26,9 +26,9 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
         // 2. Fetch external contests from Kontests API
         let externalEvents: any[] = [];
         try {
-            const response = await fetch("https://kontests.net/api/v1/all");
+            const response = await (global as any).fetch("https://kontests.net/api/v1/all");
             if (response.ok) {
-                const contests = await response.json();
+                const contests = await response.json() as any;
                 
                 // Platforms we care about
                 const targets = ["LeetCode", "CodeForces", "CodeChef", "HackerRank", "AtCoder"];
