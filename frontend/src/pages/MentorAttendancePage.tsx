@@ -222,10 +222,10 @@ const MentorAttendancePage = () => {
                                                     <select
                                                         value={status}
                                                         onChange={(e) => handleStatusChange(student.id, subject.id, e.target.value)}
-                                                        className={`w-full max-w-[120px] h-9 rounded-lg border text-[11px] font-bold px-2 focus:outline-none transition-all cursor-pointer shadow-sm ${status === "PRESENT"
-                                                            ? "bg-[#10b981] border-[#10b981] text-white" 
+                                                        className={`w-full max-w-[120px] h-9 rounded-lg border-2 text-[11px] font-bold px-2 focus:outline-none transition-all cursor-pointer shadow-sm ${status === "PRESENT"
+                                                            ? "bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400" 
                                                             : status === "ABSENT"
-                                                                ? "bg-[#dc2626] border-[#dc2626] text-white"
+                                                                ? "bg-red-500/10 border-red-500 text-red-700 dark:text-red-400"
                                                                 : "bg-secondary border-border text-foreground hover:bg-secondary/80"
                                                             }`}
                                                     >
@@ -247,13 +247,13 @@ const MentorAttendancePage = () => {
                 <div className="flex flex-wrap items-center justify-between gap-6 px-2">
                     <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-[#10b981]"></div> Present
+                            <div className="h-3 w-3 rounded-md bg-emerald-500/10 border-2 border-emerald-500"></div> Present
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-[#dc2626]"></div> Absent
+                            <div className="h-3 w-3 rounded-md bg-red-500/10 border-2 border-red-500"></div> Absent
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full bg-secondary border border-border"></div> No Class
+                            <div className="h-3 w-3 rounded-md bg-secondary border-2 border-border"></div> No Class
                         </div>
                     </div>
 
