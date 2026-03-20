@@ -238,7 +238,7 @@ const LeaderboardPage = () => {
                           )}
                         </td>
                         <td className="hidden lg:table-cell px-4 py-3.5">
-                          <span className={`text-xs font-medium ${student.attendance >= 75 ? "text-accent" : "text-destructive"}`}>
+                          <span className={`text-xs font-bold ${student.attendance >= 75 ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"}`}>
                             {student.attendance}%
                           </span>
                         </td>
