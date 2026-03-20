@@ -498,15 +498,23 @@ const StudentDashboard = () => {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="space-y-3">
-            {upcomingEvents.map((event: any) => (
-              <div key={event.title} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer">
-                <div className={`h-2 w-2 rounded-full ${event.color.replace('text-', 'bg-').split(' ')[0]}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
-                  <p className="text-xs text-muted-foreground">{event.date}</p>
+            {upcomingEvents.map((event: any) => {
+              const Content = (
+                <div key={event.title} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer">
+                  <div className={`h-2 w-2 rounded-full ${event.color.replace('text-', 'bg-').split(' ')[0]}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
+                    <p className="text-xs text-muted-foreground">{event.date}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+
+              return event.link ? (
+                <a href={event.link} target="_blank" rel="noopener noreferrer" key={event.id || event.title}>
+                  {Content}
+                </a>
+              ) : Content;
+            })}
           </div>
         </motion.div>
       </div>

@@ -17,12 +17,52 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
             where.date = { gte: startDate, lte: endDate };
         }
 
-        const events = await prisma.event.findMany({
+        // 1. Fetch local events from DB
+        const dbEvents = await prisma.event.findMany({
             where,
             orderBy: { date: "asc" },
         });
 
-        return res.json(events);
+        // 2. Fetch external contests from Kontests API
+        let externalEvents: any[] = [];
+        try {
+            const response = await fetch("https://kontests.net/api/v1/all");
+            if (response.ok) {
+                const contests = await response.json();
+                
+                // Platforms we care about
+                const targets = ["LeetCode", "CodeForces", "CodeChef", "HackerRank", "AtCoder"];
+                
+                externalEvents = contests
+                    .filter((c: any) => targets.includes(c.site))
+                    .map((c: any) => ({
+                        id: `ext-${c.name}-${c.start_time}`,
+                        title: c.name,
+                        description: `Platform: ${c.site} | Status: ${c.status}`,
+                        date: new Date(c.start_time),
+                        type: "contest",
+                        platform: c.site,
+                        link: c.url,
+                    }));
+                
+                // If filtering by date, apply it to external events too
+                if (month && year) {
+                    const startDate = new Date(Number(year), Number(month) - 1, 1);
+                    const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
+                    externalEvents = externalEvents.filter(e => e.date >= startDate && e.date <= endDate);
+                }
+            }
+        } catch (apiErr) {
+            console.error("Failed to fetch external contests:", apiErr);
+            // Don't fail the whole request if external API is down
+        }
+
+        // 3. Merge and Sort
+        const allEvents = [...dbEvents, ...externalEvents].sort((a, b) => 
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+
+        return res.json(allEvents);
     } catch (error: any) {
         console.error("Events error:", error);
         return res.status(500).json({ error: "Failed to load events" });
