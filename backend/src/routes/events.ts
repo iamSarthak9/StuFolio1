@@ -35,15 +35,23 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
                 
                 externalEvents = contests
                     .filter((c: any) => targets.includes(c.site))
-                    .map((c: any) => ({
-                        id: `ext-${c.name}-${c.start_time}`,
-                        title: c.name,
-                        description: `Platform: ${c.site} | Status: ${c.status}`,
-                        date: new Date(c.start_time),
-                        type: "contest",
-                        platform: c.site,
-                        link: c.url,
-                    }));
+                    .map((c: any) => {
+                        const durationSeconds = parseInt(c.duration);
+                        const h = Math.floor(durationSeconds / 3600);
+                        const m = Math.floor((durationSeconds % 3600) / 60);
+                        const durationStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+
+                        return {
+                            id: `ext-${c.name}-${c.start_time}`,
+                            title: c.name,
+                            description: `Platform: ${c.site} | Status: ${c.status}`,
+                            date: new Date(c.start_time),
+                            type: "contest",
+                            platform: c.site,
+                            link: c.url,
+                            duration: durationStr,
+                        };
+                    });
                 
                 // If filtering by date, apply it to external events too
                 if (month && year) {
@@ -63,7 +71,8 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
                     date: new Date(new Date().setDate(new Date().getDate() + (7 - new Date().getDay()) % 7)), // Next Sunday
                     type: "contest",
                     platform: "LeetCode",
-                    link: "https://leetcode.com/contest"
+                    link: "https://leetcode.com/contest",
+                    duration: "1h 30m"
                 },
                 {
                     id: "fb-cf-div2",
@@ -72,7 +81,8 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
                     date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // In 2 days
                     type: "contest",
                     platform: "Codeforces",
-                    link: "https://codeforces.com/contests"
+                    link: "https://codeforces.com/contests",
+                    duration: "2h 0m"
                 }
             ];
         }

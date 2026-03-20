@@ -15,6 +15,8 @@ import {
   Sparkles,
   Loader2,
   Trophy,
+  Clock,
+  Timer,
 } from "lucide-react";
 import {
   AreaChart,
@@ -30,6 +32,8 @@ import {
 import DashboardLayout from "@/components/DashboardLayout";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import PlatformIcon from "@/components/PlatformIcon";
+import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, any> = {
   TrendingUp, Code, GraduationCap, Flame, Target, Award, BookOpen, CheckCircle, Trophy,
@@ -68,6 +72,32 @@ const tooltipStyle = {
   borderRadius: "10px",
   color: "hsl(0 0% 17%)",
   boxShadow: "0 4px 12px hsl(30 10% 15% / 0.1)",
+};
+
+const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
+  const [timeLeft, setTimeLeft] = useState<string>("");
+
+  useEffect(() => {
+    const calculate = () => {
+      const diff = new Date(targetDate).getTime() - new Date().getTime();
+      if (diff <= 0) return "Started";
+      
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      if (hours > 24) {
+          return `${Math.floor(hours / 24)}d ${hours % 24}h`;
+      }
+      return `${hours}h ${mins}m ${secs}s`;
+    };
+
+    const timer = setInterval(() => setTimeLeft(calculate()), 1000);
+    setTimeLeft(calculate());
+    return () => clearInterval(timer);
+  }, [targetDate]);
+
+  return <span className="font-mono tabular-nums">{timeLeft}</span>;
 };
 
 const StudentDashboard = () => {
@@ -483,38 +513,90 @@ const StudentDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Upcoming Events */}
+        {/* Upcoming Events / Contest Tracker */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
           className="rounded-xl border border-border bg-card p-6"
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="font-display font-semibold text-foreground mb-0.5">Upcoming</h3>
-              <p className="text-xs text-muted-foreground">Events & deadlines</p>
+              <h3 className="font-display font-semibold text-foreground mb-0.5">Contest Tracker</h3>
+              <p className="text-xs text-muted-foreground">Live platform schedule</p>
             </div>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Trophy className="h-4 w-4 text-amber-500" />
           </div>
-          <div className="space-y-3">
-            {upcomingEvents.map((event: any) => {
-              const Content = (
-                <div key={event.title} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer">
-                  <div className={`h-2 w-2 rounded-full ${event.color.replace('text-', 'bg-').split(' ')[0]}`} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
-                    <p className="text-xs text-muted-foreground">{event.date}</p>
-                  </div>
-                </div>
-              );
 
-              return event.link ? (
-                <a href={event.link} target="_blank" rel="noopener noreferrer" key={event.id || event.title}>
-                  {Content}
-                </a>
-              ) : Content;
-            })}
+          <div className="space-y-4">
+            {events.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-4 text-center italic">No upcoming contests found.</p>
+            ) : (
+              events.map((event, i) => {
+                const isFirst = i === 0;
+                const isContest = event.type === "contest";
+                const dateObj = new Date(event.date);
+                
+                const cardStyle = isContest 
+                  ? event.platform?.toLowerCase().includes("leetcode") ? "bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400" :
+                    event.platform?.toLowerCase().includes("codeforces") ? "bg-blue-500/10 border-blue-500/30 text-blue-700 dark:text-blue-400" :
+                    "bg-primary/10 border-primary/30 text-primary"
+                  : "bg-secondary/30 border-border text-muted-foreground";
+
+                const Content = (
+                  <div className={cn(
+                    "group relative overflow-hidden rounded-xl border p-4 transition-all hover:scale-[1.02] active:scale-95 cursor-pointer",
+                    cardStyle,
+                    isFirst && isContest ? "ring-1 ring-offset-2 ring-primary/20 shadow-md" : ""
+                  )}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="mt-1">
+                          {isContest ? (
+                            <PlatformIcon platform={event.platform} className="h-5 w-5" />
+                          ) : (
+                            <Calendar className="h-5 w-5 opacity-60" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold truncate tracking-tight">{event.title}</p>
+                          <p className="text-[10px] font-medium opacity-70 mt-0.5">
+                            {dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            {event.duration && ` · ${event.duration}`}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {isContest && (
+                        <div className="flex flex-col items-end shrink-0">
+                           <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-background/50 backdrop-blur-sm border border-border/20 shadow-sm">
+                             <Timer className="h-3 w-3 text-primary animate-pulse" />
+                             <span className="text-[10px] font-bold">
+                               <CountdownTimer targetDate={event.date} />
+                             </span>
+                           </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+
+                return event.link ? (
+                  <a href={event.link} target="_blank" rel="noopener noreferrer" key={event.id || i} className="block">
+                    {Content}
+                  </a>
+                ) : (
+                  <div key={event.id || i}>{Content}</div>
+                );
+              })
+            )}
+            
+            <button 
+              onClick={() => window.location.href='/calendar'}
+              className="w-full py-2 text-[11px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-2"
+            >
+              View Full Calendar <ExternalLink className="h-3 w-3" />
+            </button>
           </div>
         </motion.div>
       </div>
