@@ -73,18 +73,16 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
   const navItems = role === "mentor" ? mentorNavItems : studentNavItems;
 
   useEffect(() => {
-    const hasSeenAlert = localStorage.getItem("hasSeenDummyDataAlert");
-    if (!hasSeenAlert) {
+    if (location.pathname === "/dashboard" || location.pathname === "/mentor") {
       const timer = setTimeout(() => {
         toast("Welcome to StuFolio!", {
-          description: "Just a gentle heads-up: all the data you currently see is dummy data for demonstration purposes.",
+          description: "Just a gentle heads-up: academic data and attendance data you currently see is dummy data for demonstration purposes.",
           duration: 6000,
         });
-        localStorage.setItem("hasSeenDummyDataAlert", "true");
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-background flex">
