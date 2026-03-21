@@ -15,6 +15,20 @@ msalInstance.initialize().then(() => {
     msalInstance.handleRedirectPromise().then(async (response) => {
         // If we just returned from a redirect, handle the response
         if (response && response.idToken) {
+            const email = response.account?.username?.toLowerCase() || "";
+            if (email && !email.endsWith("@bpitindia.edu.in")) {
+                console.warn(`[MSAL] Unauthorized domain: ${email}`);
+                sessionStorage.setItem("msal_error", "Please login with your college ID (@bpitindia.edu.in)");
+                createRoot(document.getElementById("root")!).render(
+                    <StrictMode>
+                        <MsalProvider instance={msalInstance}>
+                            <App />
+                        </MsalProvider>
+                    </StrictMode>
+                );
+                return;
+            }
+
             console.log("✅ MSAL Redirect Response received, logging in to backend...");
             try {
                 const data = await api.msalLogin(response.idToken);

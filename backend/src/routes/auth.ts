@@ -204,6 +204,11 @@ router.post("/msal", async (req: Request, res: Response) => {
                     return res.status(400).json({ error: "Email not found in token" });
                 }
 
+                if (!email.endsWith("@bpitindia.edu.in")) {
+                    console.warn(`[MSAL] Domain mismatch: ${email}`);
+                    return res.status(403).json({ error: "Please login with your college ID (@bpitindia.edu.in)" });
+                }
+
                 const enrollmentNumber = payload.employeeId || payload.extension_enrollmentNumber || payload.jobTitle || "00000000000";
                 console.log(`[MSAL] Enrollment claim: ${enrollmentNumber}`);
 
