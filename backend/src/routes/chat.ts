@@ -38,7 +38,7 @@ router.post("/", authenticateToken, requireRole("STUDENT", "student"), async (re
             name: user.name,
             cgpa: student.cgpa,
             rank: student.rank,
-            compositeScore: student.compositeScore,
+            performanceIdx: student.performanceIdx,
             codingScore: student.codingScore,
             streak: student.streak,
             codingProfilesConnected: student.codingProfiles?.map(cp => cp.platform).join(', ') || "None",
