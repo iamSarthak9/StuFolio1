@@ -33,6 +33,7 @@ export function requireRole(...roles: string[]) {
             return res.status(401).json({ error: "Not authenticated" });
         }
         if (!roles.includes(req.user.role)) {
+            console.warn(`🛡️ [Auth] Role mismatch: User ${req.user.userId} has role '${req.user.role}', but needs one of: ${roles.join(", ")}`);
             return res.status(403).json({ error: "Insufficient permissions" });
         }
         next();

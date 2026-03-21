@@ -13,6 +13,13 @@ import analysisRoutes from "./routes/analysis";
 import chatRoutes from "./routes/chat";
 
 const app = express();
+
+// Global logging middleware (moved to top)
+app.use((req, _res, next) => {
+    console.log(`📡 [${new Date().toISOString()}] ${req.url} — Origin: ${req.headers.origin}`);
+    next();
+});
+
 const PORT = process.env.PORT || 3001;
 
 // Middleware
@@ -20,6 +27,9 @@ const allowedOrigins = [
     "http://localhost:8080",
     "http://localhost:8081",
     "http://localhost:8082",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8081",
+    "http://127.0.0.1:8082",
     "http://localhost:5173",
     process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];

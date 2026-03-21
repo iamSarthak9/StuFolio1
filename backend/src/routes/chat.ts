@@ -9,10 +9,10 @@ const router = Router();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 router.post("/", authenticateToken, requireRole("STUDENT", "student"), async (req: AuthRequest, res: Response) => {
-    console.log(`[Chat] Request received from user: ${req.user?.userId}`);
+    console.log(`📡 [Chat] POST /api/chat - User: ${req.user?.userId}, Role: ${req.user?.role}`);
     try {
         const { message } = req.body;
-        console.log(`[Chat] Message: ${message}`);
+        console.log(`📡 [Chat] Payload: ${JSON.stringify(req.body)}`);
         if (!message) return res.status(400).json({ error: "Message is required" });
 
         const user = await prisma.user.findUnique({
@@ -54,14 +54,17 @@ ${JSON.stringify(contextData, null, 2)}
 If they ask about their grades, attendance, or CGPA, reference the exact data above to give them an accurate answer.
 Student message: ${message}`;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        console.log("[Chat] Calling Gemini API...");
         const result = await model.generateContent(systemPrompt);
 
         const textResponse = result.response.text();
+        console.log("[Chat] Gemini Response received");
         return res.json({ response: textResponse });
         
     } catch (error: any) {
-        console.error("Chat API Error:", error);
+        console.error("❌ [Chat] API Error:", error);
+        if (error.message) console.error("❌ Detail:", error.message);
         return res.status(500).json({ error: "Failed to generate chat response" });
     }
 });

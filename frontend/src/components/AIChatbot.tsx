@@ -37,10 +37,13 @@ const AIChatbot = () => {
         setIsTyping(true);
 
         try {
+            console.log(`[Chat] Sending message to bot: ${text}`);
             const result = await api.chatWithBot(text);
+            console.log("[Chat] Bot response received:", result);
             const botMsg: Message = { id: Date.now() + 1, text: result.response, sender: "bot" };
             setMessages((prev) => [...prev, botMsg]);
         } catch (error) {
+            console.error("[Chat] Request failed:", error);
             const errorMsg: Message = { id: Date.now() + 1, text: "I'm having trouble connecting to my servers right now 😢", sender: "bot" };
             setMessages((prev) => [...prev, errorMsg]);
         } finally {

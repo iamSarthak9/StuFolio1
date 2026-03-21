@@ -178,6 +178,7 @@ router.get("/me", async (req: Request, res: Response) => {
 
 // POST /api/auth/msal
 router.post("/msal", async (req: Request, res: Response) => {
+    console.log("[Auth] MSAL Login request received");
     try {
         const { idToken } = req.body;
         if (!idToken) return res.status(400).json({ error: "Missing ID token" });
