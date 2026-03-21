@@ -25,6 +25,7 @@ import {
 import NotificationCenter from "./NotificationCenter";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
+import Logo from "./Logo";
 
 const studentNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -93,23 +94,15 @@ const DashboardLayout = ({ children, title, subtitle, role = "student" }: Dashbo
       >
         {/* Logo */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-border/50">
-          {!collapsed && (
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-glow">
-                <span className="text-sm font-extrabold text-white">S</span>
-              </div>
-              <div>
-                <span className="font-display text-lg font-bold text-foreground tracking-tight">StuFolio</span>
-                <p className="text-[10px] text-muted-foreground leading-none -mt-0.5">
-                  {role === "mentor" ? "Mentor Panel" : "Student Portal"}
-                </p>
-              </div>
-            </Link>
-          )}
-          {collapsed && (
-            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center mx-auto shadow-glow">
-              <span className="text-sm font-extrabold text-white">S</span>
+          {!collapsed ? (
+            <div className="flex flex-col">
+              <Logo size="md" showText={true} className="flex-1" />
+              <p className="text-[10px] text-muted-foreground leading-none ml-[46px] -mt-2">
+                {role === "mentor" ? "Mentor Panel" : "Student Portal"}
+              </p>
             </div>
+          ) : (
+            <Logo size="md" showText={false} className="mx-auto" />
           )}
           <button className="lg:hidden text-muted-foreground" onClick={() => setMobileOpen(false)}>
             <X className="h-5 w-5" />

@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Logo from "@/components/Logo";
 
 const features = [
   {
@@ -118,12 +119,7 @@ const LandingPage = () => {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 glass-strong">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-glow">
-              <span className="text-sm font-extrabold text-white">S</span>
-            </div>
-            <span className="font-display text-xl font-bold text-foreground tracking-tight">StuFolio</span>
-          </Link>
+          <Logo size="md" />
           <div className="hidden md:flex items-center gap-8">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
             <a href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Testimonials</a>
@@ -442,12 +438,7 @@ const LandingPage = () => {
       <footer className="border-t border-border py-10">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-xs font-extrabold text-white">S</span>
-              </div>
-              <span className="font-display text-lg font-bold text-foreground">StuFolio</span>
-            </div>
+            <Logo size="sm" />
             <div className="flex items-center gap-8 text-sm text-muted-foreground">
               <a href="#features" className="hover:text-foreground transition-colors">Features</a>
               <a href="#testimonials" className="hover:text-foreground transition-colors">Testimonials</a>

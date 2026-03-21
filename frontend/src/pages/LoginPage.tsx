@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../authConfig";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Logo from "@/components/Logo";
 
 const LoginPage = () => {
   const { instance } = useMsal();
@@ -92,12 +93,7 @@ const LoginPage = () => {
 
 
         <div className="relative z-10 p-12 max-w-lg">
-          <Link to="/" className="flex items-center gap-2.5 mb-16">
-            <div className="h-11 w-11 rounded-xl bg-primary flex items-center justify-center shadow-glow">
-              <span className="text-base font-extrabold text-white">S</span>
-            </div>
-            <span className="font-display text-2xl font-bold text-foreground tracking-tight">StuFolio</span>
-          </Link>
+          <Logo size="lg" className="mb-16" />
 
           <h2 className="text-4xl font-display font-bold mb-4 text-foreground leading-tight">
             Your campus growth,
@@ -136,12 +132,7 @@ const LoginPage = () => {
         >
           {/* Mobile logo */}
           <div className="lg:hidden mb-8">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center shadow-glow">
-                <span className="text-sm font-extrabold text-white">S</span>
-              </div>
-              <span className="font-display text-xl font-bold text-foreground tracking-tight">StuFolio</span>
-            </Link>
+            <Logo size="md" />
           </div>
 
           <div className="flex justify-end mb-4">
