@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "../lib/prisma";
 import { AuthRequest, authenticateToken, requireRole } from "../middleware/auth";
+import { getStudentGlobalRank } from "../services/leaderboardService";
 
 const router = Router();
 
@@ -32,12 +33,13 @@ router.post("/", authenticateToken, requireRole("STUDENT", "student"), async (re
         if (!user?.student) return res.status(404).json({ error: "Student not found" });
 
         const student = user.student;
-        
+        const globalRank = await getStudentGlobalRank(student.id);
+
         // Build the prompt context
         const contextData = {
             name: user.name,
             cgpa: student.cgpa,
-            rank: student.rank,
+            rank: globalRank || "Unranked",
             performanceIdx: student.performanceIdx,
             codingScore: student.codingScore,
             streak: student.streak,
