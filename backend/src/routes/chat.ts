@@ -54,7 +54,7 @@ ${JSON.stringify(contextData, null, 2)}
 If they ask about their grades, attendance, or CGPA, reference the exact data above to give them an accurate answer.
 Student message: ${message}`;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         console.log("[Chat] Calling Gemini API...");
         const result = await model.generateContent(systemPrompt);
 
