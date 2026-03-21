@@ -96,7 +96,7 @@ router.post("/register", async (req: Request, res: Response) => {
 // POST /api/auth/login
 router.post("/login", async (req: Request, res: Response) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: "email and password are required" });
@@ -114,6 +114,12 @@ router.post("/login", async (req: Request, res: Response) => {
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) {
             return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        if (role && user.role !== role) {
+            return res.status(401).json({
+                error: `This account is registered as a ${user.role.toLowerCase()}. Please select the correct portal.`
+            });
         }
 
         const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });

@@ -14,7 +14,7 @@ interface AuthContextType {
     user: User | null;
     isLoading: boolean;
     isAuthenticated: boolean;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string, role?: string) => Promise<void>;
     msalLogin: (idToken: string) => Promise<void>;
     register: (userData: Record<string, unknown>) => Promise<void>;
     logout: () => void;
@@ -73,8 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initAuth();
     }, []);
 
-    const login = async (email: string, password: string) => {
-        const data = await api.login(email, password);
+    const login = async (email: string, password: string, role?: string) => {
+        const data = await api.login(email, password, role);
         setUser(data.user);
         localStorage.setItem("stufolio_user", JSON.stringify(data.user));
     };

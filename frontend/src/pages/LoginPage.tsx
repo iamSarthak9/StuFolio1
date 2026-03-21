@@ -46,7 +46,7 @@ const LoginPage = () => {
 
     try {
       if (isLogin) {
-        await login(email, password);
+        await login(email, password, role === "student" ? "STUDENT" : "MENTOR");
       } else {
         await register({
           email,

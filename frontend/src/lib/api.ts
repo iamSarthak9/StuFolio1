@@ -104,10 +104,10 @@ class ApiClient {
     }
 
     // Auth
-    async login(email: string, password: string) {
+    async login(email: string, password: string, role?: string) {
         const data = await this.request<AuthResponse>("/auth/login", {
             method: "POST",
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, role }),
         });
         this.setToken(data.token);
         return data;
