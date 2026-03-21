@@ -207,20 +207,24 @@ router.post("/attendance/daily", authenticateToken, requireRole("MENTOR"), async
         const attendanceDate = new Date(date);
         attendanceDate.setUTCHours(0, 0, 0, 0);
 
+        // Pre-fetch all existing daily attendance records for this subject/date and these students
+        const studentIds = records.map((r: any) => r.studentId);
+        const existingRecords = await prisma.dailyAttendance.findMany({
+            where: {
+                studentId: { in: studentIds },
+                subjectId,
+                date: attendanceDate
+            }
+        });
+        const existingMap = new Map(existingRecords.map((r) => [r.studentId, r]));
+
         // Transaction to ensure atomicity
         await prisma.$transaction(async (tx: any) => {
+            const operations: Promise<any>[] = [];
             const typedRecords = records as { studentId: string, status: string }[];
             for (const record of typedRecords) {
                 // 1. Log daily attendance
-                const existing = await tx.dailyAttendance.findUnique({
-                    where: {
-                        studentId_subjectId_date: {
-                            studentId: record.studentId,
-                            subjectId,
-                            date: attendanceDate,
-                        }
-                    }
-                });
+                const existing = existingMap.get(record.studentId);
 
                 if (existing) {
                     // Update existing
@@ -230,18 +234,18 @@ router.post("/attendance/daily", authenticateToken, requireRole("MENTOR"), async
                         if (record.status === "PRESENT") updateData.attended = { increment: 1 };
                         else if (existing.status === "PRESENT") updateData.attended = { decrement: 1 };
 
-                        await tx.attendance.update({
+                        operations.push(tx.attendance.update({
                             where: { studentId_subjectId: { studentId: record.studentId, subjectId } },
                             data: updateData
-                        });
+                        }));
                     }
-                    await tx.dailyAttendance.update({
+                    operations.push(tx.dailyAttendance.update({
                         where: { id: existing.id },
                         data: { status: record.status }
-                    });
+                    }));
                 } else {
                     // Create new
-                    await tx.dailyAttendance.create({
+                    operations.push(tx.dailyAttendance.create({
                         data: {
                             studentId: record.studentId,
                             subjectId,
@@ -249,10 +253,10 @@ router.post("/attendance/daily", authenticateToken, requireRole("MENTOR"), async
                             status: record.status,
                             mentorId: mentor.id
                         }
-                    });
+                    }));
 
                     // Update summary
-                    await tx.attendance.upsert({
+                    operations.push(tx.attendance.upsert({
                         where: { studentId_subjectId: { studentId: record.studentId, subjectId } },
                         create: {
                             studentId: record.studentId,
@@ -264,8 +268,12 @@ router.post("/attendance/daily", authenticateToken, requireRole("MENTOR"), async
                             total: { increment: 1 },
                             attended: record.status === "PRESENT" ? { increment: 1 } : undefined
                         }
-                    });
+                    }));
                 }
+            }
+            
+            if (operations.length > 0) {
+                await Promise.all(operations);
             }
         });
 
@@ -376,6 +384,8 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
 
         // Transaction with extended timeout
         await (prisma as any).$transaction(async (tx: any) => {
+            const operations: Promise<any>[] = [];
+            
             for (const record of records) {
                 const { studentId, subjectId, status } = record;
 
@@ -392,14 +402,14 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
                 // Update DailyAttendance
                 if (newStatus === "NO_CLASS") {
                     if (existing) {
-                        await tx.dailyAttendance.delete({ where: { id: (existing as any).id } });
+                        operations.push(tx.dailyAttendance.delete({ where: { id: (existing as any).id } }));
                     }
                 } else {
-                    await tx.dailyAttendance.upsert({
+                    operations.push(tx.dailyAttendance.upsert({
                         where: { studentId_subjectId_date: { studentId, subjectId, date: attendanceDate } },
                         create: { studentId, subjectId, date: attendanceDate, status: newStatus, mentorId: mentor.id },
                         update: { status: newStatus }
-                    });
+                    }));
                 }
 
                 // Update Summary
@@ -421,12 +431,17 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
                 }
 
                 if (Object.keys(updateData).length > 0) {
-                    await tx.attendance.upsert({
+                    operations.push(tx.attendance.upsert({
                         where: { studentId_subjectId: { studentId, subjectId } },
                         create: createData,
                         update: updateData
-                    });
+                    }));
                 }
+            }
+
+            // Execute all batched operations concurrently
+            if (operations.length > 0) {
+                await Promise.all(operations);
             }
         }, {
             timeout: 60000 // 60 seconds timeout for bulk operations
