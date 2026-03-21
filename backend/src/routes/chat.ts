@@ -8,9 +8,11 @@ const router = Router();
 // Initialize the Gemini API client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-router.post("/", authenticateToken, requireRole("STUDENT"), async (req: AuthRequest, res: Response) => {
+router.post("/", authenticateToken, requireRole("STUDENT", "student"), async (req: AuthRequest, res: Response) => {
+    console.log(`[Chat] Request received from user: ${req.user?.userId}`);
     try {
         const { message } = req.body;
+        console.log(`[Chat] Message: ${message}`);
         if (!message) return res.status(400).json({ error: "Message is required" });
 
         const user = await prisma.user.findUnique({

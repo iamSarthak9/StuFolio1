@@ -1,4 +1,5 @@
 // StuFolio Backend API - Build Trigger (Feb 24)
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
