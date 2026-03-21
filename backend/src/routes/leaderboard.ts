@@ -51,29 +51,34 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
             );
         });
 
-        const leaderboard = students.map((s, index) => {
-            // Calculate coding score from profiles
+        const leaderboard = students.map((s) => {
+            // 1. Coding Score (0-100)
             const totalProblems = s.codingProfiles.reduce((sum, cp) => {
                 const stats = JSON.parse(cp.stats) as { label: string; value: string }[];
                 const solved = stats.find((st) => st.label.toLowerCase().includes("solved"));
-                return sum + (solved ? parseInt(solved.value.replace(/,/g, "")) || 0 : 0);
+                return sum + (solved ? parseInt(solved.value.replace(/[^0-9]/g, "")) || 0 : 0);
             }, 0);
+            const codingScore = Math.min(totalProblems / 5, 80) + Math.min(s.streak, 20);
 
-            // Overall attendance
+            // 2. Academic Score (0-100)
             const totalAtt = s.attendances.reduce((sum, a) => sum + a.attended, 0);
             const totalClasses = s.attendances.reduce((sum, a) => sum + a.total, 0);
             const attPct = totalClasses > 0 ? (totalAtt / totalClasses) * 100 : 0;
+            const academicScore = (s.cgpa * 6) + (attPct * 0.4);
 
-            // Composite score (weighted: 50% Coding, 30% CGPA, 20% Attendance)
-            const compositeScore = Number(
-                (s.cgpa * 10 * 0.3 + Math.min(totalProblems / 5, 100) * 0.5 + attPct * 0.2).toFixed(1)
-            );
+            // 3. Overall Composite (Original 50/30/20)
+            const compositeScore = (s.cgpa * 3) + (Math.min(totalProblems / 5, 100) * 0.5) + (attPct * 0.2);
+
+            let displayScore = 0;
+            if (tab === "coding") displayScore = codingScore;
+            else if (tab === "academic") displayScore = academicScore;
+            else displayScore = compositeScore;
 
             return {
-                rank: index + 1,
+                rank: 0, // Assigned after sorting
                 name: s.user.name,
                 section: s.section,
-                compositeScore,
+                compositeScore: Number(displayScore.toFixed(1)),
                 cgpa: s.cgpa,
                 problemsSolved: totalProblems,
                 streak: s.streak,
@@ -81,14 +86,8 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
             };
         });
 
-        // Sort based on tab
-        if (tab === "coding") {
-            leaderboard.sort((a, b) => b.problemsSolved - a.problemsSolved);
-        } else if (tab === "academic") {
-            leaderboard.sort((a, b) => b.cgpa - a.cgpa);
-        } else {
-            leaderboard.sort((a, b) => b.compositeScore - a.compositeScore);
-        }
+        // Sort based on tab using the calculated display score
+        leaderboard.sort((a, b) => b.compositeScore - a.compositeScore);
 
         // Re-rank after sort
         leaderboard.forEach((entry, i) => (entry.rank = i + 1));

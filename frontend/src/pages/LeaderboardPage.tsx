@@ -179,67 +179,87 @@ const LeaderboardPage = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Rank</th>
-                    <th className="text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Student</th>
-                    <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Problems</th>
-                    <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">CGPA</th>
-                    <th className="text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Score</th>
-                        <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Streak</th>
-                        <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Att.</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((student, i) => {
-                        const isCurrentUser = user?.name === student.name;
-                        return (
-                          <motion.tr
-                            key={student.name}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.03 }}
-                            className={`border-b border-border last:border-0 hover:bg-secondary/30 transition-colors ${isCurrentUser ? "bg-primary/5" : ""
-                              }`}
-                          >
-                            <td className="px-3 sm:px-4 py-3.5">
-                              <div className={`inline-flex h-7 w-7 items-center justify-center rounded-md border text-xs font-bold ${getRankBadge(student.rank)}`}>
-                                {student.rank <= 3 ? <Medal className="h-3.5 w-3.5" /> : student.rank}
-                              </div>
-                            </td>
-                            <td className="px-3 sm:px-4 py-3.5">
-                              <div className="flex items-center gap-2 sm:gap-3">
-                                <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-white shrink-0 ${isCurrentUser ? "bg-gradient-primary shadow-glow" : "bg-gradient-primary"
-                                  }`}>
-                                  {student.name.split(" ").map((n: string) => n[0]).join("")}
-                                </div>
-                                <div className="min-w-0">
-                                  <span className="font-medium text-xs sm:text-sm text-foreground truncate block">{student.name}</span>
-                                  <p className="text-[10px] text-muted-foreground truncate">{student.section}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-3 sm:px-4 py-3.5 text-xs sm:text-sm text-muted-foreground table-cell">{student.problemsSolved}</td>
-                            <td className="hidden sm:table-cell px-4 py-3.5 text-sm text-muted-foreground">{student.cgpa}</td>
-                            <td className="px-3 sm:px-4 py-3.5">
-                              <span className="text-xs sm:text-sm font-display font-bold text-primary italic">
-                                {student.compositeScore}
-                              </span>
-                            </td>
-                            <td className="hidden sm:table-cell px-4 py-3.5">
-                              {student.streak > 0 ? (
-                                <div className="flex items-center gap-1">
-                                  <Flame className="h-3.5 w-3.5 text-warning fill-warning/20" />
-                                  <span className="text-xs font-bold text-warning">{student.streak}d</span>
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">—</span>
-                              )}
-                            </td>
-                        <td className="hidden sm:table-cell px-4 py-3.5">
-                          <span className={`text-xs font-black ${student.attendance >= 75 ? "text-emerald-500" : "text-red-500"}`}>
-                            {student.attendance}%
-                          </span>
+                  <tr className="border-b border-border bg-secondary/20">
+                    <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Rank</th>
+                    <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Student</th>
+                    {activeTab !== "academic" && (
+                      <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Problems</th>
+                    )}
+                    {activeTab !== "coding" && (
+                      <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">CGPA</th>
+                    )}
+                    {activeTab !== "coding" && (
+                      <th className="text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Score</th>
+                    )}
+                    {activeTab !== "academic" && (
+                      <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Streak</th>
+                    )}
+                    {activeTab !== "coding" && (
+                      <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Att.</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((student, i) => {
+                    const isCurrentUser = user?.name === student.name;
+                    return (
+                      <motion.tr
+                        key={student.name}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.03 }}
+                        className={`border-b border-border last:border-0 hover:bg-secondary/30 transition-colors ${isCurrentUser ? "bg-primary/5" : ""
+                          }`}
+                      >
+                        <td className="px-3 sm:px-4 py-3.5">
+                          <div className={`inline-flex h-7 w-7 items-center justify-center rounded-md border text-xs font-bold ${getRankBadge(student.rank)}`}>
+                            {student.rank <= 3 ? <Medal className="h-3.5 w-3.5" /> : student.rank}
+                          </div>
                         </td>
+                        <td className="px-3 sm:px-4 py-3.5">
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-white shrink-0 ${isCurrentUser ? "bg-gradient-primary shadow-glow" : "bg-gradient-primary"
+                              }`}>
+                              {student.name.split(" ").map((n: string) => n[0]).join("")}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="font-medium text-xs sm:text-sm text-foreground truncate block">{student.name}</span>
+                              <p className="text-[10px] text-muted-foreground truncate">{student.section}</p>
+                            </div>
+                          </div>
+                        </td>
+                        {activeTab !== "academic" && (
+                          <td className="px-3 sm:px-4 py-3.5 text-xs sm:text-sm text-muted-foreground table-cell">{student.problemsSolved}</td>
+                        )}
+                        {activeTab !== "coding" && (
+                          <td className="hidden sm:table-cell px-4 py-3.5 text-sm text-muted-foreground">{student.cgpa}</td>
+                        )}
+                        {activeTab !== "coding" && (
+                          <td className="px-3 sm:px-4 py-3.5">
+                            <span className="text-xs sm:text-sm font-display font-bold text-primary italic">
+                              {student.compositeScore}
+                            </span>
+                          </td>
+                        )}
+                        {activeTab !== "academic" && (
+                          <td className="hidden sm:table-cell px-4 py-3.5">
+                            {student.streak > 0 ? (
+                              <div className="flex items-center gap-1">
+                                <Flame className="h-3.5 w-3.5 text-warning fill-warning/20" />
+                                <span className="text-xs font-bold text-warning">{student.streak}d</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">—</span>
+                            )}
+                          </td>
+                        )}
+                        {activeTab !== "coding" && (
+                          <td className="hidden sm:table-cell px-4 py-3.5">
+                            <span className={`text-xs font-black ${student.attendance >= 75 ? "text-emerald-500" : "text-red-500"}`}>
+                              {student.attendance}%
+                            </span>
+                          </td>
+                        )}
                       </motion.tr>
                     );
                   })}

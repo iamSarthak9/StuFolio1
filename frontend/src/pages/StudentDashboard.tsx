@@ -234,26 +234,6 @@ const StudentDashboard = () => {
 
   return (
     <DashboardLayout title="Dashboard" subtitle={`Welcome back, ${userName.split(" ")[0]} 👋`} role="student">
-      {/* Warning Alerts */}
-      {warnings.length > 0 && (
-        <div className="space-y-2 mb-6">
-          {warnings.map((w: any, i: number) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className={`flex items-center gap-3 rounded-xl p-3.5 text-sm ${w.type === "danger"
-                ? "bg-destructive/10 border border-destructive/20 text-destructive"
-                : "bg-warning/10 border border-warning/20 text-warning"
-                }`}
-            >
-              <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>{w.text}</span>
-            </motion.div>
-          ))}
-        </div>
-      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -493,6 +473,28 @@ const StudentDashboard = () => {
             ))}
           </div>
         </motion.div>
+      )}
+
+      {/* Warning Alerts (Moved to Bottom) */}
+      {warnings.length > 0 && (
+        <div className="space-y-2 mt-8">
+          {warnings.map((w: any, i: number) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              className={`flex items-center gap-3 rounded-xl p-3.5 text-sm ${
+                w.type === "danger"
+                  ? "bg-destructive/10 border border-destructive/20 text-destructive"
+                  : "bg-warning/10 border border-warning/20 text-warning"
+              }`}
+            >
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>{w.text}</span>
+            </motion.div>
+          ))}
+        </div>
       )}
     </DashboardLayout>
   );
