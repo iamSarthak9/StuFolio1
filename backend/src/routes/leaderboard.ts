@@ -58,7 +58,7 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
                 const solved = stats.find((st) => st.label.toLowerCase().includes("solved"));
                 return sum + (solved ? parseInt(solved.value.replace(/[^0-9]/g, "")) || 0 : 0);
             }, 0);
-            const codingScore = Math.min(totalProblems / 5, 80) + Math.min(s.streak, 20);
+            const codingScore = Math.min(totalProblems / 5, 100);
 
             // 2. Academic Score (0-100)
             const totalAtt = s.attendances.reduce((sum, a) => sum + a.attended, 0);
