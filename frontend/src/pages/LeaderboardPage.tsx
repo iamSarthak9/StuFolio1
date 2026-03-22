@@ -177,7 +177,7 @@ const LeaderboardPage = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[600px] whitespace-nowrap">
                 <thead>
                   <tr className="border-b border-border bg-secondary/20">
                     <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Rank</th>
@@ -186,16 +186,16 @@ const LeaderboardPage = () => {
                       <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Problems</th>
                     )}
                     {activeTab !== "coding" && (
-                      <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">CGPA</th>
+                      <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">CGPA</th>
                     )}
                     {activeTab !== "coding" && (
-                      <th className="text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Score</th>
+                      <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Score</th>
                     )}
                     {activeTab !== "academic" && (
-                      <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Streak</th>
+                      <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Streak</th>
                     )}
                     {activeTab !== "coding" && (
-                      <th className="hidden sm:table-cell text-left text-[11px] font-medium text-muted-foreground px-4 py-3">Att.</th>
+                      <th className="table-cell text-left text-[11px] font-medium text-muted-foreground px-3 sm:px-4 py-3">Att.</th>
                     )}
                   </tr>
                 </thead>
@@ -232,17 +232,17 @@ const LeaderboardPage = () => {
                           <td className="px-3 sm:px-4 py-3.5 text-xs sm:text-sm text-muted-foreground table-cell">{student.problemsSolved}</td>
                         )}
                         {activeTab !== "coding" && (
-                          <td className="hidden sm:table-cell px-4 py-3.5 text-sm text-muted-foreground">{student.cgpa}</td>
+                          <td className="px-3 sm:px-4 py-3.5 text-sm text-muted-foreground table-cell">{student.cgpa}</td>
                         )}
                         {activeTab !== "coding" && (
-                          <td className="px-3 sm:px-4 py-3.5">
+                          <td className="px-3 sm:px-4 py-3.5 table-cell">
                             <span className="text-xs sm:text-sm font-display font-bold text-primary italic">
                               {student.compositeScore}
                             </span>
                           </td>
                         )}
                         {activeTab !== "academic" && (
-                          <td className="hidden sm:table-cell px-4 py-3.5">
+                          <td className="px-3 sm:px-4 py-3.5 table-cell">
                             {student.streak > 0 ? (
                               <div className="flex items-center gap-1">
                                 <Flame className="h-3.5 w-3.5 text-warning fill-warning/20" />
@@ -254,7 +254,7 @@ const LeaderboardPage = () => {
                           </td>
                         )}
                         {activeTab !== "coding" && (
-                          <td className="hidden sm:table-cell px-4 py-3.5">
+                          <td className="px-3 sm:px-4 py-3.5 table-cell">
                             <span className={`text-xs font-black ${student.attendance >= 75 ? "text-emerald-500" : "text-red-500"}`}>
                               {student.attendance}%
                             </span>
