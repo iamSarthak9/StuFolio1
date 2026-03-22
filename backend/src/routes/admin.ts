@@ -62,7 +62,6 @@ router.get("/students/:id", authenticateToken, requireAdmin, async (req: AuthReq
                 user: { select: { name: true, email: true, createdAt: true } },
                 attendances: { include: { subject: true } },
                 academicRecords: { include: { subject: true } },
-                studentSubjects: { include: { subject: true } },
                 codingProfiles: true,
                 badges: true
             }
