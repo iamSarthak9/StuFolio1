@@ -58,7 +58,7 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
                 const solved = stats.find((st) => st.label.toLowerCase().includes("solved"));
                 return sum + (solved ? parseInt(solved.value.replace(/[^0-9]/g, "")) || 0 : 0);
             }, 0);
-            const codingScore = Math.min(totalProblems / 5, 100);
+            const codingScore = totalProblems / 5;
 
             // 2. Academic Score (0-100)
             const totalAtt = s.attendances.reduce((sum, a) => sum + a.attended, 0);
@@ -67,7 +67,7 @@ router.get("/", authenticateToken, async (req: AuthRequest, res: Response) => {
             const academicScore = (s.cgpa * 6) + (attPct * 0.4);
 
             // 3. Overall Composite (Original 50/30/20)
-            const compositeScore = (s.cgpa * 3) + (Math.min(totalProblems / 5, 100) * 0.5) + (attPct * 0.2);
+            const compositeScore = (s.cgpa * 3) + ((totalProblems / 5) * 0.5) + (attPct * 0.2);
 
             let displayScore = 0;
             if (tab === "coding") displayScore = codingScore;
