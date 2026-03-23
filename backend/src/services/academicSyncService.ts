@@ -216,7 +216,7 @@ export class AcademicSyncService {
                 console.log(`[Sync] Fetching results for ${option.text}...`);
                 await page.select("#euno", option.value);
                 await page.click("input[type='submit'], button.btn-primary, #btnGetResult").catch(() => null);
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
                 const semesterData = await page.evaluate((semName) => {
                     const doc = (globalThis as any).document;

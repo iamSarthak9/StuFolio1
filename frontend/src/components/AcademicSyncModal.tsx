@@ -71,9 +71,10 @@ const AcademicSyncModal = ({ isOpen, onClose, onSuccess }: AcademicSyncModalProp
         
         try {
             // Simulate progress steps
-            setTimeout(() => setSyncProgress("Accessing examination records..."), 5000);
-            setTimeout(() => setSyncProgress("Scraping marks for all semesters..."), 10000);
-            setTimeout(() => setSyncProgress("Updating your StuFolio dashboard..."), 15000);
+            setTimeout(() => setSyncProgress("Accessing examination records..."), 3000);
+            setTimeout(() => setSyncProgress("Scraping semester results..."), 8000);
+            setTimeout(() => setSyncProgress("Calculated CGPA & Trends..."), 15000);
+            setTimeout(() => setSyncProgress("Finalizing dashboard update..."), 22000);
 
             await api.syncPortal({
                 syncId: captchaData.syncId,
@@ -84,9 +85,6 @@ const AcademicSyncModal = ({ isOpen, onClose, onSuccess }: AcademicSyncModalProp
 
             setStep("success");
             toast.success("Academic records synced successfully!");
-            setTimeout(() => {
-                onSuccess();
-            }, 2000);
         } catch (err: any) {
             console.error("Sync error:", err);
             setError(err.message || "Sync failed. Please check your credentials and captcha.");
@@ -266,7 +264,13 @@ const AcademicSyncModal = ({ isOpen, onClose, onSuccess }: AcademicSyncModalProp
                                 </motion.div>
                                 <h4 className="text-xl font-display font-bold text-foreground mb-2">Sync Complete!</h4>
                                 <p className="text-sm text-muted-foreground">Your academic records have been securely updated.</p>
-                                <p className="text-[10px] text-muted-foreground mt-8 uppercase font-bold">Closing in a few seconds...</p>
+                                
+                                <Button 
+                                    onClick={onSuccess} 
+                                    className="mt-8 px-8 h-11 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold shadow-lg"
+                                >
+                                    Go to Dashboard
+                                </Button>
                             </div>
                         )}
                     </div>

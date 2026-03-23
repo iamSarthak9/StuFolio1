@@ -24,6 +24,7 @@ const StudentAcademicsPage = () => {
     const [searchQuery, setSearchQuery] = useState<string>("");
 
     const fetchData = async () => {
+        setLoading(true);
         try {
             const result = await api.getStudentAcademics();
             setData(result);
