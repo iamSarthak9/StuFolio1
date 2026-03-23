@@ -12,7 +12,7 @@ setInterval(() => {
     const now = Date.now();
     for (const [id, session] of activeSyncSessions.entries()) {
         if (now - session.createdAt > 10 * 60 * 1000) {
-            session.browser.close().catch(() => {});
+            session.page.close().catch(() => {});
             activeSyncSessions.delete(id);
         }
     }
@@ -55,27 +55,53 @@ const findChromeInRenderCache = () => {
 };
 
 export class AcademicSyncService {
-    /**
-     * Starts a sync session by navigating to the login page and extracting the captcha.
-     */
-    static async getCaptcha(): Promise<{ syncId: string; captchaBase64: string }> {
-        let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+    private static browserInstance: Browser | null = null;
 
-        // Special case for Render: dynamic discovery
-        if (!executablePath && process.env.RENDER) {
-            executablePath = findChromeInRenderCache() || undefined;
-            if (executablePath) {
-                console.log("[Sync] Render detected, dynamically found chrome at:", executablePath);
-            } else {
-                console.warn("[Sync] Render detected but no chrome executable found in /opt/render/.cache/puppeteer/chrome");
+    private static async getBrowser(): Promise<Browser> {
+        if (this.browserInstance) {
+            try {
+                // Check if browser is still responsive
+                await this.browserInstance.version();
+                return this.browserInstance;
+            } catch (e) {
+                console.warn("[Sync] Singleton browser disconnected or unresponsive, restarting...");
+                this.browserInstance = null;
             }
         }
 
-        const browser = await puppeteer.launch({
+        let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+
+        if (!executablePath && process.env.RENDER) {
+            executablePath = findChromeInRenderCache() || undefined;
+        }
+
+        console.log("[Sync] Launching singleton browser instance...");
+        this.browserInstance = await puppeteer.launch({
             executablePath,
             headless: true,
             args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
         });
+
+        return this.browserInstance;
+    }
+
+    /**
+     * Pre-launches the browser to avoid delay on first request.
+     */
+    static async warmup() {
+        try {
+            console.log("[Sync] Warming up academic sync service...");
+            await this.getBrowser();
+        } catch (e) {
+            console.error("[Sync] Warmup failed:", e);
+        }
+    }
+
+    /**
+     * Starts a sync session by navigating to the login page and extracting the captcha.
+     */
+    static async getCaptcha(): Promise<{ syncId: string; captchaBase64: string }> {
+        const browser = await this.getBrowser();
 
         try {
             const page = await browser.newPage();
@@ -105,7 +131,7 @@ export class AcademicSyncService {
 
             return { syncId, captchaBase64: `data:image/png;base64,${captchaBase64}` };
         } catch (error) {
-            await browser.close();
+            // Don't close the singleton browser on error, just throw
             throw error;
         }
     }
@@ -236,7 +262,7 @@ export class AcademicSyncService {
             console.error("[Sync] Error during flow:", error.message || error);
             throw error;
         } finally {
-            await browser.close();
+            await page.close().catch(() => {});
             activeSyncSessions.delete(syncId);
         }
     }

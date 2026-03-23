@@ -11,6 +11,7 @@ import eventRoutes from "./routes/events";
 import notificationRoutes from "./routes/notifications";
 import analysisRoutes from "./routes/analysis";
 import chatRoutes from "./routes/chat";
+import { AcademicSyncService } from "./services/academicSyncService";
 
 const app = express();
 
@@ -56,9 +57,12 @@ app.use("/api/analysis", analysisRoutes);
 app.use("/api/chat", chatRoutes);
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`\n StuFolio API running at http://localhost:${PORT}`);
     console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
+
+    // Pre-launch browser for faster academic sync
+    await AcademicSyncService.warmup();
 });
 
 export default app;
