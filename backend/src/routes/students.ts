@@ -588,7 +588,7 @@ router.get("/me/sync-portal/captcha", authenticateToken, requireRole("STUDENT"),
         return res.json(result);
     } catch (error: any) {
         console.error("Fetch captcha error:", error);
-        return res.status(500).json({ error: "Failed to connect to GGSIPU portal" });
+        return res.status(500).json({ error: error.message || "Failed to connect to GGSIPU portal" });
     }
 });
 

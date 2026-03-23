@@ -22,16 +22,26 @@ export class AcademicSyncService {
      */
     static async getCaptcha(): Promise<{ syncId: string; captchaBase64: string }> {
         const browser = await puppeteer.launch({
+            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
             headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
         });
 
         try {
             const page = await browser.newPage();
-            await page.goto("https://examweb.ggsipu.ac.in/web/login.jsp", { waitUntil: "networkidle2" });
+            
+            // Set a realistic user agent to avoid bot detection in deployment
+            await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+
+            console.log("[Sync] Navigating to GGSIPU portal...");
+            await page.goto("https://examweb.ggsipu.ac.in/web/login.jsp", { 
+                waitUntil: "networkidle2",
+                timeout: 30000 // Increase timeout to 30s for slower deployment networks
+            });
 
             // Wait for the captcha image to be available
-            await page.waitForSelector("#captchaImage", { timeout: 10000 });
+            console.log("[Sync] Waiting for captcha image...");
+            await page.waitForSelector("#captchaImage", { timeout: 15000 });
             const captchaElement = await page.$("#captchaImage");
             
             if (!captchaElement) {
@@ -80,7 +90,7 @@ export class AcademicSyncService {
             console.log(`[Sync] Attempting login for ${username}...`);
             await Promise.all([
                 page.click("input[type='submit'].btn-login"),
-                page.waitForNavigation({ waitUntil: "networkidle2", timeout: 20000 }).catch(() => {
+                page.waitForNavigation({ waitUntil: "networkidle2", timeout: 30000 }).catch(() => {
                     console.warn("[Sync] Navigation timeout, checking current page state...");
                 }),
             ]);
@@ -107,12 +117,15 @@ export class AcademicSyncService {
 
             // 3. Navigate to Marks/Results page
             console.log("[Sync] Navigating to dashboard for results...");
-            await page.goto("https://examweb.ggsipu.ac.in/web/student/studenthome.jsp", { waitUntil: "networkidle2" }).catch(() => null);
+            await page.goto("https://examweb.ggsipu.ac.in/web/student/studenthome.jsp", { 
+                waitUntil: "networkidle2",
+                timeout: 30000 
+            }).catch(() => null);
 
             // 4. Loop through all Semester options and Fetch
             const allScrapedData: any[] = [];
             
-            await page.waitForSelector("#euno", { timeout: 10000 }).catch(() => null);
+            await page.waitForSelector("#euno", { timeout: 15000 }).catch(() => null);
             const options = await page.evaluate(() => {
                 const sel = (globalThis as any).document.querySelector("#euno");
                 if (!sel) return [];
@@ -169,8 +182,8 @@ export class AcademicSyncService {
             await this.updateDatabaseWithScrapedData(studentId, allScrapedData);
 
             return { success: true, count: allScrapedData.length };
-        } catch (error) {
-            console.error("[Sync] Error during flow:", error);
+        } catch (error: any) {
+            console.error("[Sync] Error during flow:", error.message || error);
             throw error;
         } finally {
             await browser.close();
