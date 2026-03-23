@@ -21,7 +21,7 @@ const StudentAcademicsPage = () => {
     const [loading, setLoading] = useState(true);
     const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
     const [selectedSemester, setSelectedSemester] = useState<string>("All Semesters");
-    const [searchQuery, setSearchQuery] = useState<string>("");
+    const [selectedSemester, setSelectedSemester] = useState<string>("All Semesters");
 
     const fetchData = async () => {
         setLoading(true);
@@ -59,10 +59,7 @@ const StudentAcademicsPage = () => {
     const semesters = ["All Semesters", ...Array.from(new Set(records.map((r: any) => r.semester).filter((s: any) => s && s !== "All Semesters")))];
 
     const filteredRecords = records.filter((r: any) => {
-        const matchesSemester = selectedSemester === "All Semesters" || r.semester === selectedSemester;
-        const sub = r.subject || "";
-        const code = r.code || "";
-        return matchesSemester && (sub.toLowerCase().includes(searchQuery.toLowerCase()) || code.toLowerCase().includes(searchQuery.toLowerCase()));
+        return selectedSemester === "All Semesters" || r.semester === selectedSemester;
     });
 
     return (
@@ -126,7 +123,6 @@ const StudentAcademicsPage = () => {
                                 <select value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} className="bg-background border p-2 rounded-xl text-xs outline-none">
                                     {semesters.map(s => <option key={s} value={s}>{s}</option>)}
                                 </select>
-                                <input type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-background border p-2 rounded-xl text-xs outline-none w-32" />
                             </div>
                         </div>
                         <div className="overflow-x-auto">
