@@ -20,8 +20,7 @@ const StudentAcademicsPage = () => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
-    const [selectedSemester, setSelectedSemester] = useState<string>("All Semesters");
-    const [selectedSemester, setSelectedSemester] = useState<string>("All Semesters");
+    const [selectedSemester, setSelectedSemester] = useState<string>("ALL");
 
     const fetchData = async () => {
         setLoading(true);
@@ -56,10 +55,10 @@ const StudentAcademicsPage = () => {
     }
 
     const { semesterCGPAs = [], records = [] } = data || {};
-    const semesters = ["All Semesters", ...Array.from(new Set(records.map((r: any) => r.semester).filter((s: any) => s && s !== "All Semesters")))];
+    const semesters: string[] = ["ALL", ...Array.from(new Set<string>(records.map((r: any) => r.semester as string).filter((s: string) => s && s !== "ALL" && s !== "All Semesters")))];
 
     const filteredRecords = records.filter((r: any) => {
-        return selectedSemester === "All Semesters" || r.semester === selectedSemester;
+        return selectedSemester === "ALL" || r.semester === selectedSemester;
     });
 
     return (
