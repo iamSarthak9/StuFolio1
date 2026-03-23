@@ -21,8 +21,16 @@ export class AcademicSyncService {
      * Starts a sync session by navigating to the login page and extracting the captcha.
      */
     static async getCaptcha(): Promise<{ syncId: string; captchaBase64: string }> {
+        let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH || undefined;
+
+        // Special case for Render: if not found, try to find it in the cache
+        if (!executablePath && process.env.RENDER) {
+            executablePath = "/opt/render/.cache/puppeteer/chrome/linux-146.0.7680.153/chrome-linux64/chrome";
+            console.log("[Sync] Render detected, using fallback path:", executablePath);
+        }
+
         const browser = await puppeteer.launch({
-            executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+            executablePath,
             headless: true,
             args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
         });
