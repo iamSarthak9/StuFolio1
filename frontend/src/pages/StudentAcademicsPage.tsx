@@ -56,7 +56,7 @@ const StudentAcademicsPage = () => {
     }
 
     const { semesterCGPAs = [], records = [] } = data || {};
-    const semesters = ["All Semesters", ...Array.from(new Set(records.map((r: any) => r.semester)))];
+    const semesters = ["All Semesters", ...Array.from(new Set(records.map((r: any) => r.semester).filter((s: any) => s && s !== "All Semesters")))];
 
     const filteredRecords = records.filter((r: any) => {
         const matchesSemester = selectedSemester === "All Semesters" || r.semester === selectedSemester;
