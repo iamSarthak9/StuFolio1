@@ -104,8 +104,8 @@ const AIChatbot = () => {
                                 <div>
                                     <h3 className="font-display font-semibold text-foreground text-sm">StuBot</h3>
                                     <div className="flex items-center gap-1">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                                        <span className="text-[10px] text-accent">Online</span>
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[10px] text-emerald-500">Online</span>
                                     </div>
                                 </div>
                             </div>
