@@ -1,15 +1,27 @@
 import { Router, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "../lib/prisma";
 import { AuthRequest, authenticateToken, requireRole } from "../middleware/auth";
+import { getGeminiModel, generateWithRetry } from "../lib/gemini";
 
 const router = Router();
 
+// In-memory cache for analysis (valid for 5 minutes)
+const analysisCache = new Map<string, { data: any, timestamp: number }>();
+
 // GET /api/analysis/me — Get AI-driven performance analysis
-router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthRequest, res: Response) => {
+router.get("/me", authenticateToken, requireRole("STUDENT", "student"), async (req: AuthRequest, res: Response) => {
     try {
+        const studentId = req.user!.userId;
+        
+        // Cache Check
+        const cached = analysisCache.get(studentId);
+        if (cached && Date.now() - cached.timestamp < 1000 * 60 * 5) {
+            console.log(`[Analysis] Serving cached data for ${studentId}`);
+            return res.json(cached.data);
+        }
+
         const user = await prisma.user.findUnique({
-            where: { id: req.user!.userId },
+            where: { id: studentId },
             include: {
                 student: {
                     include: {
@@ -27,7 +39,6 @@ router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthReq
         const student = user.student;
 
         // 1. Strength & Weakness Map (Radar Chart Data)
-        // Group by subject and calculate avg score
         const strengthData = student.academicRecords.map(r => ({
             subject: r.subject.code,
             score: (r.marks / r.maxMarks) * 100,
@@ -63,15 +74,12 @@ router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthReq
         ];
 
         // 3. True AI Gen: Suggestions and Explainable AI
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-        
         const lowScores = strengthData.filter(s => s.score < 70);
-        const lowAttendance = student.attendances.filter(a => (a.attended / a.total) < 0.75);
         
         let codingSolved = 0;
         try {
             codingSolved = student.codingProfiles.reduce((acc, cp) => {
-                const stats = JSON.parse(cp.stats || "[]");
+                const stats = typeof cp.stats === 'string' ? JSON.parse(cp.stats || "[]") : cp.stats;
                 const solved = stats.find((s: any) => s.label.includes("Solved"))?.value || 0;
                 return acc + parseInt(solved || 0);
             }, 0);
@@ -79,7 +87,6 @@ router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthReq
 
         const currentCgpa = student.cgpa;
 
-        // Call Gemini API
         const promptContext = {
             name: user.name,
             cgpa: student.cgpa,
@@ -96,35 +103,31 @@ Return a JSON object strictly containing EXACTLY two arrays:
 1. "suggestions": An array of at least 4 objects. Each object must have:
    - "icon": A string (one of "AlertTriangle", "BookOpen", "Zap", "TrendingUp", "CheckCircle", "Target").
    - "title": A short title.
-   - "description": Personalized, actionable advice based on their data. Mention details.
+   - "description": Personalized, actionable advice based on their data.
    - "priority": "high", "medium", or "low".
-   - "color": Tailwind classes like "text-amber-500 bg-amber-500/10 border-amber-500/20", "text-rose-500 bg-rose-500/10 border-rose-500/20", "text-purple-500 bg-purple-500/10 border-purple-500/20", "text-emerald-500 bg-emerald-500/10 border-emerald-500/20", or "text-blue-500 bg-blue-500/10 border-blue-500/20" matching the priority.
+   - "color": Tailwind classes for dark mode visibility (e.g., "text-amber-500 bg-amber-500/10 border-amber-500/20").
 2. "insights": An array of exactly 3 objects explaining *why* their trajectory/performance is the way it is. Each object must have:
-   - "question": A short question like "Why is my trajectory improving?".
-   - "answer": A deep, explainable AI answer reflecting the correlation between attendance, academics, and coding.
+   - "question": A short question.
+   - "answer": A deep, explainable AI answer.
    - "icon": A single emoji.`;
 
         let suggestions: any[] = [];
         let insights: any[] = [];
         
         try {
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-2.5-flash",
-                generationConfig: { responseMimeType: "application/json" }
-            });
-            const result = await model.generateContent(systemInstruction + "\n\nStudent Data:\n" + JSON.stringify(promptContext));
+            const model = getGeminiModel("gemini-1.5-flash");
+            const result = await generateWithRetry(model, systemInstruction + "\n\nStudent Data:\n" + JSON.stringify(promptContext));
             const responseText = result.response.text();
             let cleanedText = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
             const aiData = JSON.parse(cleanedText);
             suggestions = aiData.suggestions || [];
             insights = aiData.insights || [];
-        } catch (e) {
-            console.error("Gemini failed:", e);
-            suggestions = [{ title: "AI Unavailable", description: "Falling back to basic suggestions.", icon: "AlertTriangle", priority: "low", color: "text-blue-500 bg-blue-500/20" }];
-            insights = [{ question: "AI Error", answer: "Failed to load insights", icon: "⚠️" }];
+        } catch (e: any) {
+            console.error("[Analysis] AI generation failed:", e.message);
+            suggestions = [{ title: "AI Temporarily Unavailable", description: "Google's AI servers are a bit busy. Basic suggestions enabled.", icon: "AlertTriangle", priority: "low", color: "text-blue-500 bg-blue-500/20" }];
+            insights = [{ question: "Why is the AI not loading?", answer: "The free-tier API is experiencing high demand. Please refresh in a minute!", icon: "⏳" }];
         }
 
-        // 4. Dynamic Goal Roadmap Math
         const currentSem = actualData.length;
         const totalSems = 8;
         const remainingSems = totalSems - currentSem;
@@ -132,12 +135,7 @@ Return a JSON object strictly containing EXACTLY two arrays:
 
         [8.5, 9.0].forEach(target => {
             if (currentSem === 0 || currentSem >= totalSems) {
-                goalRoadmap.push({
-                    target: `${target.toFixed(1)} CGPA`,
-                    needed: "Need more semester data.",
-                    feasibility: "Unknown",
-                    color: "text-muted-foreground bg-secondary/20 border-border"
-                });
+                goalRoadmap.push({ target: `${target.toFixed(1)} CGPA`, needed: "Need data", feasibility: "Unknown", color: "text-muted-foreground" });
                 return;
             }
 
@@ -145,35 +143,25 @@ Return a JSON object strictly containing EXACTLY two arrays:
 
             let feasibility = "Very Likely";
             let color = "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
-            let needed = "";
-
-            if (requiredSgpaAvg > 10) {
-                feasibility = "Mathematically Impossible";
-                color = "text-rose-500 bg-rose-500/10 border-rose-500/20";
-                needed = `Requires >10 SGPA on average the rest of the way.`;
-            } else if (requiredSgpaAvg > 9.0) {
-                feasibility = "Challenging";
-                color = "text-amber-500 bg-amber-500/10 border-amber-500/20";
-                needed = `Require average SGPA of ${requiredSgpaAvg.toFixed(2)} in remaining ${remainingSems} sems.`;
+            
+            if (requiredSgpaAvg > 10) { 
+                feasibility = "Impossible"; 
+                color = "text-rose-500 bg-rose-500/10 border-rose-500/20"; 
+            } else if (requiredSgpaAvg > 9.0) { 
+                feasibility = "Challenging"; 
+                color = "text-amber-500 bg-amber-500/10 border-amber-500/20"; 
             } else if (requiredSgpaAvg <= currentCgpa) {
                 feasibility = "Very Likely";
                 color = "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
-                needed = `Just maintain your current trajectory (need ~${requiredSgpaAvg.toFixed(2)} SGPA).`;
             } else {
                 feasibility = "Possible";
                 color = "text-purple-500 bg-purple-500/10 border-purple-500/20";
-                needed = `Require average SGPA of ${requiredSgpaAvg.toFixed(2)} in remaining ${remainingSems} sems.`;
             }
-
-            goalRoadmap.push({
-                target: `${target.toFixed(1)} CGPA`,
-                needed,
-                feasibility,
-                color
-            });
+            
+            goalRoadmap.push({ target: `${target.toFixed(1)} CGPA`, needed: `Requires ~${requiredSgpaAvg.toFixed(2)} SGPA`, feasibility, color });
         });
 
-        return res.json({
+        const responseData = {
             strengthData,
             predictionData,
             suggestions: suggestions.slice(0, 4),
@@ -182,10 +170,15 @@ Return a JSON object strictly containing EXACTLY two arrays:
             currentCgpa,
             currentSem,
             totalSems,
-            overallTrend: predictedNext && predictedNext >= currentCgpa ? "Upward ↑" : "Steady",
+            overallTrend: (predictedNext || 0) >= currentCgpa ? "Upward ↑" : "Steady",
             predictedGPA: predictedNext || currentCgpa,
             weakAreas: lowScores.map(s => s.subject).join(", ") || "None identified"
-        });
+        };
+
+        // Update Cache
+        analysisCache.set(studentId, { data: responseData, timestamp: Date.now() });
+
+        return res.json(responseData);
     } catch (error: any) {
         console.error("Analysis error:", error);
         return res.status(500).json({ error: "Failed to generate analysis" });

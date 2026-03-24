@@ -1,13 +1,10 @@
 import { Router, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "../lib/prisma";
 import { AuthRequest, authenticateToken, requireRole } from "../middleware/auth";
 import { getStudentGlobalRank } from "../services/leaderboardService";
+import { getGeminiModel, generateWithRetry } from "../lib/gemini";
 
 const router = Router();
-
-// Initialize the Gemini API client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 router.post("/", authenticateToken, requireRole("STUDENT", "student"), async (req: AuthRequest, res: Response) => {
     console.log(`📡 [Chat] POST /api/chat - User: ${req.user?.userId}, Role: ${req.user?.role}`);
@@ -63,9 +60,9 @@ If they ask about their grades, attendance, CGPA, rank, coding stats, or streaks
 ${context ? `\n[UI CONTEXT] The user is currently viewing the following dynamically computed AI Analysis on their screen right now:\n${JSON.stringify(context, null, 2)}\nUse this exact context to eagerly and accurately explain their "suggestions", "weak areas", or "predicted GPA" if they ask about what is on their screen.\n` : ''}
 Student message: ${message}`;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = getGeminiModel("gemini-1.5-flash");
         console.log("[Chat] Calling Gemini API...");
-        const result = await model.generateContent(systemPrompt);
+        const result = await generateWithRetry(model, systemPrompt);
 
         const textResponse = result.response.text();
         console.log("[Chat] Gemini Response received");
