@@ -316,17 +316,24 @@ export class AcademicSyncService {
     private static async updateDatabaseWithScrapedData(studentId: string, data: any[]) {
         console.log(`[Sync] Updating database with ${data.length} records for student ${studentId}...`);
 
-        // 1. Unique subjects first to avoid redundant upserts
-        const uniqueSubjects = Array.from(new Map(data.map(item => [item.code, item])).values());
-        
         // 2. Transact all subject upserts and record updates
         await prisma.$transaction(async (tx) => {
             const subjectMap = new Map<string, string>();
 
+            // Clean item codes first for consistent identification
+            for (const item of data) {
+                item.code = item.code.replace(/-/g, "").trim().toUpperCase();
+            }
+
+            // Re-calculate unique subjects after cleaning
+            const uniqueSubjects = Array.from(new Map(data.map(item => [item.code, item])).values());
+
             // Upsert all subjects first
             for (const item of uniqueSubjects) {
                 // Find credit from syllabus mapping
-                const syllabusInfo = (syllabusCredits as any[]).find(s => s.code === item.code);
+                const syllabusInfo = (syllabusCredits as any[]).find(s => 
+                    s.code.replace(/-/g, "").toUpperCase() === item.code
+                );
                 const finalCredits = syllabusInfo ? syllabusInfo.credits : item.credits;
                 const finalName = syllabusInfo ? syllabusInfo.name : item.name;
 
