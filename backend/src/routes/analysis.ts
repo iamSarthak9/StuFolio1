@@ -1,4 +1,5 @@
 import { Router, Response } from "express";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import prisma from "../lib/prisma";
 import { AuthRequest, authenticateToken, requireRole } from "../middleware/auth";
 
@@ -61,9 +62,8 @@ router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthReq
             { sem: `Sem ${actualData.length + 1}`, actual: null, predicted: predictedNext || student.cgpa }
         ];
 
-        // 3. Complex Rule Engine for Suggestions and Explainable AI
-        const suggestions: any[] = [];
-        const insights: any[] = [];
+        // 3. True AI Gen: Suggestions and Explainable AI
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
         
         const lowScores = strengthData.filter(s => s.score < 70);
         const lowAttendance = student.attendances.filter(a => (a.attended / a.total) < 0.75);
@@ -77,88 +77,51 @@ router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthReq
             }, 0);
         } catch(e) {}
 
-        const correlatedSubjects = lowAttendance.filter(a => 
-            lowScores.some(s => s.subject === a.subject.code)
-        );
-
-        if (correlatedSubjects.length > 0) {
-            const subjName = correlatedSubjects[0].subject.name;
-            suggestions.push({
-                icon: "AlertTriangle",
-                title: `Critical Focus on ${subjName}`,
-                description: `Your score drop is highly correlated with your <75% attendance. Attending classes will stabilize your score.`,
-                priority: "high",
-                color: "text-destructive bg-destructive/10 border-destructive/20",
-            });
-            insights.push({
-                question: `Why is performance at risk in ${subjName}?`,
-                answer: `Extraction shows a strong correlation: low attendance (<75%) resulted in scores dropping below 70%. Improve attendance to recover.`,
-                icon: "📉"
-            });
-        } else if (lowScores.length > 0) {
-            suggestions.push({
-                icon: "BookOpen",
-                title: `Focus on ${lowScores[0].subject}`,
-                description: `Your score in ${lowScores[0].subject} is below the 70% threshold. Dedicate more practice to this subject.`,
-                priority: "medium",
-                color: "text-warning bg-warning/10 border-warning/20",
-            });
-        }
-
-        if (codingSolved > 50 && lowScores.length > 0) {
-            suggestions.push({
-                icon: "Zap",
-                title: "Balance Academics with Coding",
-                description: `You are performing well in competitive programming, but ${lowScores.length} subject(s) need attention. Maintain a healthy balance.`,
-                priority: "medium",
-                color: "text-warning bg-warning/10 border-warning/20",
-            });
-        } else if (lowAttendance.length > 0) {
-            suggestions.push({
-                icon: "Zap",
-                title: `Improve Attendance in ${lowAttendance[0].subject.name}`,
-                description: `Current attendance is low. Try to maintain above 75% for exam eligibility.`,
-                priority: "high",
-                color: "text-destructive bg-destructive/10 border-destructive/20",
-            });
-        }
-
-        if (student.streak < 3) {
-            suggestions.push({
-                icon: "TrendingUp",
-                title: "Rebuild your Coding Consistency",
-                description: "You lost your steady coding streak! Consistency is key for technical interviews.",
-                priority: "low",
-                color: "text-primary bg-primary/10 border-primary/20",
-            });
-        }
-
-        if (suggestions.length === 0) {
-            suggestions.push({
-                icon: "CheckCircle",
-                title: "Exceptional Trajectory",
-                description: "You are consistently hitting academic and attendance targets. Keep it up!",
-                priority: "low",
-                color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-            });
-        }
-
         const currentCgpa = student.cgpa;
 
-        if (insights.length === 0) {
-            if (predictedNext && predictedNext > currentCgpa) {
-                insights.push({
-                    question: "Why is your trajectory improving?",
-                    answer: "Your recent semesters show an upward trend. The Weighted Moving Average model strongly weights your recent improvements.",
-                    icon: "📈"
-                });
-            } else {
-                insights.push({
-                    question: "What is stabilizing your score?",
-                    answer: "Your attendance and academic scores are consistent. Maintaining this will keep your CGPA steady.",
-                    icon: "⚖️"
-                });
-            }
+        // Call Gemini API
+        const promptContext = {
+            name: user.name,
+            cgpa: student.cgpa,
+            predictedNextGPA: predictedNext,
+            academicScores: strengthData,
+            attendance: student.attendances.map(a => ({ subject: a.subject.code, attendedPercent: Math.round((a.attended / a.total) * 100) })),
+            codingSolvedTotal: codingSolved,
+            codingStreak: student.streak
+        };
+
+        const systemInstruction = `You are an AI academic advisor analyzing a student's profile.
+Analyze the following student data covering both academics and coding.
+Return a JSON object strictly containing EXACTLY two arrays:
+1. "suggestions": An array of at least 4 objects. Each object must have:
+   - "icon": A string (one of "AlertTriangle", "BookOpen", "Zap", "TrendingUp", "CheckCircle", "Target").
+   - "title": A short title.
+   - "description": Personalized, actionable advice based on their data. Mention details.
+   - "priority": "high", "medium", or "low".
+   - "color": Tailwind classes like "text-amber-500 bg-amber-500/10 border-amber-500/20", "text-rose-500 bg-rose-500/10 border-rose-500/20", "text-purple-500 bg-purple-500/10 border-purple-500/20", "text-emerald-500 bg-emerald-500/10 border-emerald-500/20", or "text-blue-500 bg-blue-500/10 border-blue-500/20" matching the priority.
+2. "insights": An array of exactly 3 objects explaining *why* their trajectory/performance is the way it is. Each object must have:
+   - "question": A short question like "Why is my trajectory improving?".
+   - "answer": A deep, explainable AI answer reflecting the correlation between attendance, academics, and coding.
+   - "icon": A single emoji.`;
+
+        let suggestions: any[] = [];
+        let insights: any[] = [];
+        
+        try {
+            const model = genAI.getGenerativeModel({ 
+                model: "gemini-2.5-flash",
+                generationConfig: { responseMimeType: "application/json" }
+            });
+            const result = await model.generateContent(systemInstruction + "\n\nStudent Data:\n" + JSON.stringify(promptContext));
+            const responseText = result.response.text();
+            let cleanedText = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+            const aiData = JSON.parse(cleanedText);
+            suggestions = aiData.suggestions || [];
+            insights = aiData.insights || [];
+        } catch (e) {
+            console.error("Gemini failed:", e);
+            suggestions = [{ title: "AI Unavailable", description: "Falling back to basic suggestions.", icon: "AlertTriangle", priority: "low", color: "text-blue-500 bg-blue-500/20" }];
+            insights = [{ question: "AI Error", answer: "Failed to load insights", icon: "⚠️" }];
         }
 
         // 4. Dynamic Goal Roadmap Math
@@ -186,19 +149,19 @@ router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthReq
 
             if (requiredSgpaAvg > 10) {
                 feasibility = "Mathematically Impossible";
-                color = "text-destructive bg-destructive/10 border-destructive/20";
+                color = "text-rose-500 bg-rose-500/10 border-rose-500/20";
                 needed = `Requires >10 SGPA on average the rest of the way.`;
             } else if (requiredSgpaAvg > 9.0) {
                 feasibility = "Challenging";
-                color = "text-warning bg-warning/10 border-warning/20";
+                color = "text-amber-500 bg-amber-500/10 border-amber-500/20";
                 needed = `Require average SGPA of ${requiredSgpaAvg.toFixed(2)} in remaining ${remainingSems} sems.`;
             } else if (requiredSgpaAvg <= currentCgpa) {
                 feasibility = "Very Likely";
-                color = "text-accent bg-accent/10 border-accent/20";
+                color = "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
                 needed = `Just maintain your current trajectory (need ~${requiredSgpaAvg.toFixed(2)} SGPA).`;
             } else {
                 feasibility = "Possible";
-                color = "text-primary bg-primary/10 border-primary/20";
+                color = "text-purple-500 bg-purple-500/10 border-purple-500/20";
                 needed = `Require average SGPA of ${requiredSgpaAvg.toFixed(2)} in remaining ${remainingSems} sems.`;
             }
 
@@ -216,6 +179,9 @@ router.get("/me", authenticateToken, requireRole("STUDENT"), async (req: AuthReq
             suggestions: suggestions.slice(0, 4),
             insights: insights.slice(0, 3),
             goalRoadmap,
+            currentCgpa,
+            currentSem,
+            totalSems,
             overallTrend: predictedNext && predictedNext >= currentCgpa ? "Upward ↑" : "Steady",
             predictedGPA: predictedNext || currentCgpa,
             weakAreas: lowScores.map(s => s.subject).join(", ") || "None identified"

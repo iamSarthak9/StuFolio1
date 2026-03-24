@@ -218,10 +218,10 @@ class ApiClient {
         return this.request<unknown>("/analysis/me");
     }
 
-    chatWithBot(message: string) {
+    chatWithBot(message: string, context?: any) {
         return this.request<{ response: string }>("/chat", {
             method: "POST",
-            body: JSON.stringify({ message }),
+            body: JSON.stringify({ message, context }),
         });
     }
 
