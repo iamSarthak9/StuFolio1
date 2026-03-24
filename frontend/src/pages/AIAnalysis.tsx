@@ -48,6 +48,65 @@ const tooltipStyle = {
 const AIAnalysis = () => {
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [customTarget, setCustomTarget] = useState("");
+    const [customGoals, setCustomGoals] = useState<any[]>([]);
+
+    const addCustomGoal = () => {
+        const target = parseFloat(customTarget);
+        if (isNaN(target) || target <= 0 || target > 10) return;
+        if (!data || data.currentSem == null) return;
+        
+        const { currentCgpa, currentSem, totalSems } = data;
+        const remainingSems = totalSems - currentSem;
+        if (remainingSems <= 0) return;
+
+        const requiredSgpaAvg = (target * totalSems - currentCgpa * currentSem) / remainingSems;
+
+        let feasibility = "Very Likely";
+        let color = "text-emerald-500 bg-emerald-500/10 border-emerald-500/20";
+        let needed = "";
+
+        if (requiredSgpaAvg > 10) {
+            feasibility = "Impossible";
+            color = "text-rose-500 bg-rose-500/10 border-rose-500/20";
+            needed = `Requires >10 SGPA on average the rest of the way.`;
+        } else if (requiredSgpaAvg > 9.0) {
+            feasibility = "Challenging";
+            color = "text-amber-500 bg-amber-500/10 border-amber-500/20";
+            needed = `Require average SGPA of ${requiredSgpaAvg.toFixed(2)} in remaining ${remainingSems} sems.`;
+        } else if (requiredSgpaAvg <= currentCgpa) {
+            feasibility = "Very Likely";
+            color = "text-blue-500 bg-blue-500/10 border-blue-500/20";
+            needed = `Just maintain your current trajectory (need ~${requiredSgpaAvg.toFixed(2)} SGPA).`;
+        } else {
+            feasibility = "Possible";
+            color = "text-purple-500 bg-purple-500/10 border-purple-500/20";
+            needed = `Require average SGPA of ${requiredSgpaAvg.toFixed(2)} in remaining ${remainingSems} sems.`;
+        }
+
+        const newGoal = {
+            target: `${target.toFixed(2)} CGPA`,
+            needed,
+            feasibility,
+            color
+        };
+
+        setCustomGoals([newGoal, ...customGoals]);
+        setCustomTarget("");
+    };
+
+    useEffect(() => {
+        if (data) {
+            sessionStorage.setItem('bot_page_context', JSON.stringify({
+                page: "AI Analysis",
+                predictedGPA: data.predictedGPA,
+                overallTrend: data.overallTrend,
+                weakAreas: data.weakAreas,
+                suggestions: data.suggestions
+            }));
+        }
+        return () => sessionStorage.removeItem('bot_page_context');
+    }, [data]);
 
     useEffect(() => {
         const fetchAnalysis = async () => {
@@ -102,12 +161,12 @@ const AIAnalysis = () => {
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
-                                    <TrendingUp className="h-4 w-4 text-accent" />
+                                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                                    <TrendingUp className="h-4 w-4 text-emerald-500" />
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">Overall Trend</p>
-                                    <p className="text-sm font-semibold text-accent">{data.overallTrend}</p>
+                                    <p className="text-sm font-semibold text-emerald-500">{data.overallTrend}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -120,12 +179,12 @@ const AIAnalysis = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded-lg bg-warning/10 flex items-center justify-center">
-                                    <AlertTriangle className="h-4 w-4 text-warning" />
+                                <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                    <AlertTriangle className="h-4 w-4 text-amber-500" />
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted-foreground">Areas to Watch</p>
-                                    <p className="text-sm font-semibold text-warning truncate max-w-[150px]">{data.weakAreas || "None"}</p>
+                                    <p className="text-sm font-semibold text-amber-500 truncate max-w-[150px]">{data.weakAreas || "None"}</p>
                                 </div>
                             </div>
                         </div>
@@ -200,7 +259,7 @@ const AIAnalysis = () => {
                 className="rounded-xl border border-border bg-card p-6 mb-8"
             >
                 <div className="flex items-center gap-2 mb-4">
-                    <Lightbulb className="h-5 w-5 text-warning" />
+                    <Lightbulb className="h-5 w-5 text-amber-500" />
                     <h3 className="font-display font-semibold text-foreground">AI-Driven Personalized Suggestions</h3>
                 </div>
                 {data.suggestions.length > 0 ? (
@@ -244,8 +303,27 @@ const AIAnalysis = () => {
                         <h3 className="font-display font-semibold text-foreground">Goal Roadmap</h3>
                     </div>
                     <p className="text-xs text-muted-foreground mb-4">What you need to reach target CGPAs</p>
+                    <div className="flex items-center gap-2 mb-4">
+                        <input 
+                            type="number" 
+                            step="0.1" 
+                            min={data?.currentCgpa || 0} 
+                            max="10" 
+                            placeholder="Custom Target CGPA" 
+                            value={customTarget}
+                            onChange={(e) => setCustomTarget(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && addCustomGoal()}
+                            className="flex-1 h-9 rounded-lg border border-border bg-secondary/50 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+                        />
+                        <button 
+                            onClick={addCustomGoal}
+                            className="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-medium transition-all"
+                        >
+                            Analyze
+                        </button>
+                    </div>
                     <div className="space-y-4">
-                        {(data.goalRoadmap || [
+                        {([...customGoals, ...(data.goalRoadmap || [])] || [
                             { target: "8.5 CGPA", needed: "Maintain current trajectory", feasibility: "Very Likely", color: "text-accent bg-accent/10" },
                             { target: "9.0 CGPA", flag: data.predictedGPA < 8.5, needed: "Increase study hours by 20% and improve attendance", feasibility: "Challenging", color: "text-warning bg-warning/10" },
                         ]).map((g: any, i: number) => (
