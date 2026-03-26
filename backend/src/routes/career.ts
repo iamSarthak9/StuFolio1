@@ -45,7 +45,7 @@ router.get("/analysis", authenticateToken, requireRole("STUDENT", "student"), as
 
         const student = user.student;
         const studentSkillNames = student.skills.map(s => s.skill.name);
-        
+
         const systemPrompt = `You are a world-class Career Strategist and Professional Advisory AI.
 Your task is to provide a comprehensive career readiness analysis for the student aiming for the role of "${targetGoal}".
 
@@ -101,12 +101,12 @@ Ensure all links are the direct official websites. No hallucinations.
 Be precise and professional.`;
 
         console.log(`[Career] Requesting Groq AI Analysis for ${user.name} -> ${targetGoal}`);
-        
+
         try {
             const result = await generateWithRetry(systemPrompt);
             const responseText = result.choices[0]?.message?.content || "{}";
             const aiData = JSON.parse(responseText);
-            
+
             console.log(`[Career] Successfully generated AI response for ${studentId}`);
             return res.json(aiData);
         } catch (aiError) {
@@ -114,7 +114,7 @@ Be precise and professional.`;
             const academicScore = Math.min((student.cgpa / 10) * 100, 100);
             const codingScore = Math.min(student.codingProfiles.length * 20, 100); // Simple estimate for fallback
             const placementScore = Math.round((codingScore * 0.55) + (academicScore * 0.45));
-            
+
             return res.json({
                 placementScore: Math.min(placementScore, 95),
                 skillGap: (roleBenchmarks[targetGoal]?.skills || []).map((s: string) => ({ skill: s, student: 40, industry: 90 })),
