@@ -2,7 +2,7 @@ import { Router, Response } from "express";
 import prisma from "../lib/prisma";
 import { AuthRequest, authenticateToken, requireRole } from "../middleware/auth";
 import { getStudentGlobalRank } from "../services/leaderboardService";
-import { getGeminiModel, generateWithRetry } from "../lib/gemini";
+import { generateChatResponse } from "../lib/ai";
 
 const router = Router();
 
@@ -60,12 +60,10 @@ If they ask about their grades, attendance, CGPA, rank, coding stats, or streaks
 ${context ? `\n[UI CONTEXT] The user is currently viewing the following dynamically computed AI Analysis on their screen right now:\n${JSON.stringify(context, null, 2)}\nUse this exact context to eagerly and accurately explain their "suggestions", "weak areas", or "predicted GPA" if they ask about what is on their screen.\n` : ''}
 Student message: ${message}`;
 
-        const model = getGeminiModel("gemini-1.5-flash");
-        console.log("[Chat] Calling Gemini API...");
-        const result = await generateWithRetry(model, systemPrompt);
-
-        const textResponse = result.response.text();
-        console.log("[Chat] Gemini Response received");
+        console.log("[Chat] Calling Groq API...");
+        const textResponse = await generateChatResponse(message, systemPrompt);
+        
+        console.log("[Chat] Groq Response received");
         return res.json({ response: textResponse });
         
     } catch (error: any) {
