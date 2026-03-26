@@ -175,45 +175,45 @@ const CareerPage = () => {
                                 </div>
                             )}
 
-                            <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-10">
-                                <div className="relative">
+                            <div className="p-8 md:p-12 flex flex-col md:flex-row items-center gap-12">
+                                <div className="relative shrink-0">
                                     {/* Glowing Ring */}
-                                    <div className="absolute inset-[-12px] rounded-3xl bg-primary/10 blur-xl animate-pulse" />
-                                    <div className="absolute inset-[-4px] rounded-[28px] border-2 border-primary/20" />
+                                    <div className="absolute inset-[-15px] rounded-[40px] bg-primary/10 blur-2xl animate-pulse" />
+                                    <div className="absolute inset-[-4px] rounded-[32px] border-2 border-primary/20" />
                                     
-                                    <div className="h-40 w-40 rounded-[24px] bg-card border border-primary/10 flex items-center justify-center relative z-10 shadow-glow-lg group-hover:shadow-primary/20 transition-all duration-500">
+                                    <div className="h-44 w-44 rounded-[28px] bg-card border border-primary/10 flex items-center justify-center relative z-10 shadow-glow-lg group-hover:shadow-primary/30 transition-all duration-500">
                                         <div className="text-center">
                                             <motion.div 
                                                 initial={{ scale: 0.5, opacity: 0 }}
                                                 animate={{ scale: 1, opacity: 1 }}
                                                 transition={{ delay: 0.2, type: "spring" }}
-                                                className="text-5xl font-display font-black text-primary tracking-tighter"
+                                                className="text-6xl font-display font-black text-primary tracking-tighter"
                                             >
                                                 {data.placementScore}
                                             </motion.div>
-                                            <div className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em] mt-1 opacity-60">Readiness</div>
+                                            <div className="text-[11px] text-muted-foreground uppercase font-black tracking-[0.25em] mt-2 opacity-80">Readiness</div>
                                         </div>
                                     </div>
                                     
-                                    {/* Floating Badges */}
-                                    <div className="absolute -top-3 -right-3 h-10 w-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg border-2 border-card rotate-12 group-hover:rotate-0 transition-transform">
-                                        <Trophy className="h-5 w-5" />
+                                    {/* Floating Trophy Badge - Re-aligned */}
+                                    <div className="absolute -top-4 -right-2 h-12 w-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-xl border-4 border-card rotate-6 group-hover:rotate-0 transition-all duration-500 z-20">
+                                        <Trophy className="h-6 w-6" />
                                     </div>
                                 </div>
 
-                                <div className="flex-1 space-y-6 text-center md:text-left">
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-center md:justify-start gap-3">
-                                            <h2 className="text-3xl font-display font-black text-foreground">{goal} Analysis</h2>
+                                <div className="flex-1 space-y-8 text-center md:text-left py-2">
+                                    <div className="space-y-4">
+                                        <div className="flex flex-col md:flex-row items-center md:items-end gap-3 mb-2">
+                                            <h2 className="text-4xl font-display font-black text-foreground tracking-tight">{goal}</h2>
                                             {data.placementScore > 80 && (
-                                                <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-black border border-emerald-500/20 flex items-center gap-1.5 uppercase tracking-wider">
-                                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                                    Professional Tier
+                                                <div className="mb-1.5 px-4 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[11px] font-black border border-emerald-500/20 flex items-center gap-2 uppercase tracking-widest">
+                                                    <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                                                    Placement Ready
                                                 </div>
                                             )}
                                         </div>
-                                        <p className="text-base text-muted-foreground leading-relaxed max-w-2xl font-medium">
-                                            {data.summary}
+                                        <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl font-medium italic opacity-90">
+                                            "{data.summary}"
                                         </p>
                                     </div>
 
