@@ -9,21 +9,48 @@ const router = Router();
 const roleBenchmarks: Record<string, any> = {
     "Full Stack Developer": {
         skills: ["React", "Node.js", "PostgreSQL", "TypeScript", "Docker", "AWS"],
-        certs: [{ title: "Meta Full Stack Engineer", platform: "Coursera", icon: "💻", relevance: "Critical", time: "6 Months" }],
-        projects: [{ title: "E-Commerce Microservices", description: "A scalable e-commerce platform with decoupled services for payments, inventory, and auth.", skills: ["Node.js", "Docker", "Redis"], impact: "High" }],
-        competitions: [{ title: "Smart India Hackathon", type: "National", date: "Annual", difficulty: "Hard", url: "https://www.sih.gov.in/" }]
+        certs: [
+            { title: "Meta Full Stack Engineer", platform: "Coursera", icon: "💻", relevance: "Critical", time: "6 Months" },
+            { title: "AWS Certified Developer", platform: "Amazon", icon: "☁️", relevance: "High", time: "3 Months" }
+        ],
+        projects: [
+            { title: "E-Commerce Microservices", description: "A scalable platform with decoupled services for payments, inventory, and auth.", skills: ["Node.js", "Docker", "Redis"], impact: "High" },
+            { title: "AI Image SaaS", description: "Generating art using DALL-E 3 with a subscription-based credit system.", skills: ["Next.js", "OpenAI", "Stripe"], impact: "High" }
+        ],
+        competitions: [
+            { title: "Smart India Hackathon", type: "National", date: "Annual", difficulty: "Hard", url: "https://www.sih.gov.in/" },
+            { title: "Google Summer of Code", type: "Global", date: "Summer", difficulty: "Elite", url: "https://summerofcode.withgoogle.com/" }
+        ]
     },
     "Data Scientist": {
         skills: ["Python", "TensorFlow", "Pandas", "SQL", "Statistics"],
-        certs: [{ title: "Google Data Analytics", platform: "Coursera", icon: "📊", relevance: "High", time: "4 Months" }],
-        projects: [{ title: "Predictive Health Analytics", description: "ML model to predict patient readmission rates using historical clinical data.", skills: ["Python", "Scikit-Learn", "FastAPI"], impact: "High" }],
-        competitions: [{ title: "Kaggle Grand Prix", type: "Global", date: "Quarterly", difficulty: "Hard", url: "https://www.kaggle.com/competitions" }]
+        certs: [
+            { title: "Google Data Analytics", platform: "Coursera", icon: "📊", relevance: "High", time: "4 Months" },
+            { title: "IBM Data Science", platform: "edX", icon: "🧪", relevance: "High", time: "5 Months" }
+        ],
+        projects: [
+            { title: "Predictive Health Analytics", description: "ML model to predict patient readmission rates using historical data.", skills: ["Python", "Scikit-Learn", "FastAPI"], impact: "High" },
+            { title: "Stock Sentiment AI", description: "Analyzing 1M+ tweets to predict stock market trends in real-time.", skills: ["NLP", "PyTorch", "Kafka"], impact: "High" }
+        ],
+        competitions: [
+            { title: "Kaggle Grand Prix", type: "Global", date: "Quarterly", difficulty: "Hard", url: "https://www.kaggle.com/competitions" },
+            { title: "DrivenData Challenges", type: "Global", date: "Monthly", difficulty: "Hard", url: "https://www.drivendata.org/" }
+        ]
     },
     "Backend Developer": {
         skills: ["Java", "Spring Boot", "MySQL", "System Design", "Redis"],
-        certs: [{ title: "Spring Certified Professional", platform: "Pivotal", icon: "☕", relevance: "Critical", time: "5 Months" }],
-        projects: [{ title: "Real-time Chat Engine", description: "High-throughput messaging system with WebSockets and distributed caching.", skills: ["Java", "Redis", "Kafka"], impact: "High" }],
-        competitions: [{ title: "ICPC World Finals", type: "Elite", date: "Annual", difficulty: "Hard", url: "https://icpc.global/" }]
+        certs: [
+            { title: "Spring Certified Professional", platform: "Pivotal", icon: "☕", relevance: "Critical", time: "5 Months" },
+            { title: "Oracle Java SE", platform: "Oracle", icon: "☕", relevance: "High", time: "4 Months" }
+        ],
+        projects: [
+            { title: "Real-time Chat Engine", description: "High-throughput messaging system with WebSockets and Redis.", skills: ["Java", "Redis", "Kafka"], impact: "High" },
+            { title: "FinTech Ledger API", description: "Double-entry accounting system with ACID compliance for banking.", skills: ["PostgreSQL", "Go", "Docker"], impact: "High" }
+        ],
+        competitions: [
+            { title: "ICPC World Finals", type: "Elite", date: "Annual", difficulty: "Hard", url: "https://icpc.global/" },
+            { title: "LeetCode Weekly", type: "Global", date: "Weekly", difficulty: "Medium", url: "https://leetcode.com/contest/" }
+        ]
     }
 };
 
