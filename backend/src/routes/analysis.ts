@@ -1,7 +1,7 @@
 import { Router, Response } from "express";
 import prisma from "../lib/prisma";
 import { AuthRequest, authenticateToken, requireRole } from "../middleware/auth";
-import { getGeminiModel, generateWithRetry } from "../lib/gemini";
+import { generateWithRetry } from "../lib/ai";
 
 const router = Router();
 
@@ -125,11 +125,9 @@ Return a JSON object strictly containing EXACTLY two arrays:
             } else {
                 // Create a new pending request
                 const aiPromise = (async () => {
-                    const model = getGeminiModel("gemini-2.0-flash");
-                    const result = await generateWithRetry(model, systemInstruction + "\n\nStudent Data:\n" + JSON.stringify(promptContext));
-                    const responseText = result.response.text();
-                    let cleanedText = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
-                    const aiData = JSON.parse(cleanedText);
+                    const result = await generateWithRetry(systemInstruction + "\n\nStudent Data:\n" + JSON.stringify(promptContext));
+                    const responseText = result.choices[0]?.message?.content || "{}";
+                    const aiData = JSON.parse(responseText);
                     return {
                         suggestions: aiData.suggestions || [],
                         insights: aiData.insights || []
@@ -147,8 +145,8 @@ Return a JSON object strictly containing EXACTLY two arrays:
             }
         } catch (e: any) {
             console.error("[Analysis] AI generation failed:", e.message);
-            suggestions = [{ title: "AI Temporarily Unavailable", description: "Google's AI servers are a bit busy. Basic suggestions enabled.", icon: "AlertTriangle", priority: "low", color: "text-blue-500 bg-blue-500/20" }];
-            insights = [{ question: "Why is the AI not loading?", answer: "The free-tier API is experiencing high demand. Please refresh in a minute!", icon: "⏳" }];
+            suggestions = [{ title: "AI Temporarily Unavailable", description: "The AI analysis hub is experiencing high demand. Basic suggestions enabled.", icon: "AlertTriangle", priority: "low", color: "text-blue-500 bg-blue-500/20" }];
+            insights = [{ question: "Why is the AI not loading?", answer: "The AI service is processing many requests. Please refresh in a minute!", icon: "⏳" }];
         }
 
         const currentSem = actualData.length;

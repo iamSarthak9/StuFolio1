@@ -60,9 +60,9 @@ export interface CareerAnalysis {
     placementScore: number;
     skillGap: { skill: string; student: number; industry: number }[];
     recommendations: {
-        certifications: { title: string; platform: string; relevance: string; time: string; icon: string }[];
+        certifications: { title: string; platform: string; relevance: string; time: string; icon: string; url?: string }[];
         projects: { title: string; description: string; skills: string[]; impact: string }[];
-        competitions: { title: string; type: string; date: string; difficulty: string }[];
+        competitions: { title: string; type: string; date: string; difficulty: string; url?: string }[];
     };
     summary: string;
 }

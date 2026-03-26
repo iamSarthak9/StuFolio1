@@ -98,7 +98,7 @@ const AIAnalysis = () => {
     useEffect(() => {
         if (data) {
             sessionStorage.setItem('bot_page_context', JSON.stringify({
-                page: "AI Analysis",
+                page: "AI Analytics",
                 predictedGPA: data.predictedGPA,
                 overallTrend: data.overallTrend,
                 weakAreas: data.weakAreas,
@@ -124,7 +124,7 @@ const AIAnalysis = () => {
 
     if (loading) {
         return (
-            <DashboardLayout title="AI Analysis" subtitle="Analyzing your profile..." role="student">
+            <DashboardLayout title="AI Analytics" subtitle="Analyzing your academic path..." role="student">
                 <div className="flex items-center justify-center py-20">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
@@ -134,7 +134,7 @@ const AIAnalysis = () => {
 
     if (!data) {
         return (
-            <DashboardLayout title="AI Analysis" subtitle="Something went wrong" role="student">
+            <DashboardLayout title="AI Analytics" subtitle="Something went wrong" role="student">
                 <div className="text-center py-20">
                     <p className="text-muted-foreground text-sm">Could not generate analysis. Please try again later.</p>
                 </div>
@@ -143,7 +143,7 @@ const AIAnalysis = () => {
     }
 
     return (
-        <DashboardLayout title="AI Analysis" subtitle="Intelligent insights for your growth" role="student">
+        <DashboardLayout title="AI Analytics" subtitle="AI-driven performance and growth insights" role="student">
             {/* Overall Score */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -155,9 +155,9 @@ const AIAnalysis = () => {
                         <Brain className="h-10 w-10 text-white" />
                     </div>
                     <div className="flex-1">
-                        <h2 className="text-xl font-display font-bold text-foreground mb-1">AI Performance Analysis</h2>
+                        <h2 className="text-xl font-display font-bold text-foreground mb-1">AI Academic Analysis</h2>
                         <p className="text-sm text-muted-foreground mb-3">
-                            Based on your academic scores, coding activity, attendance patterns, and peer comparison, here's your comprehensive profile analysis.
+                            Based on your academic scores, coding activity, and attendance patterns, here's your comprehensive AI-driven insights.
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <div className="flex items-center gap-2">
@@ -323,10 +323,7 @@ const AIAnalysis = () => {
                         </button>
                     </div>
                     <div className="space-y-4">
-                        {([...customGoals, ...(data.goalRoadmap || [])] || [
-                            { target: "8.5 CGPA", needed: "Maintain current trajectory", feasibility: "Very Likely", color: "text-accent bg-accent/10" },
-                            { target: "9.0 CGPA", flag: data.predictedGPA < 8.5, needed: "Increase study hours by 20% and improve attendance", feasibility: "Challenging", color: "text-warning bg-warning/10" },
-                        ]).map((g: any, i: number) => (
+                        {[...customGoals, ...(data.goalRoadmap || [])].map((g: any, i: number) => (
                             <div key={i} className={`rounded-xl border p-4 ${g.color || 'bg-secondary/20 border-border'}`}>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className={`text-sm font-display font-bold ${g.color ? g.color.split(' ')[0] : 'text-foreground'}`}>{g.target}</span>
@@ -347,9 +344,9 @@ const AIAnalysis = () => {
                 >
                     <div className="flex items-center gap-2 mb-4">
                         <Sparkles className="h-5 w-5 text-emerald-500" />
-                        <h3 className="font-display font-semibold text-foreground">Why This Changed</h3>
+                        <h3 className="font-display font-semibold text-foreground">AI Logic & Reasoning Hub</h3>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-4">Explainable AI feedback on your performance</p>
+                    <p className="text-xs text-muted-foreground mb-4">Deep insights into the factors driving your performance</p>
                     <div className="space-y-4">
                         {data.insights.map((insight: any, i: number) => (
                             <div key={i} className="rounded-xl border border-border p-4 bg-secondary/20">

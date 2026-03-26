@@ -45,6 +45,17 @@ const CareerPage = () => {
         "UI/UX Designer"
     ];
 
+    const roadmapLinks: Record<string, string> = {
+        "Full Stack Developer": "https://roadmap.sh/full-stack",
+        "Backend Developer": "https://roadmap.sh/backend",
+        "Frontend Developer": "https://roadmap.sh/frontend",
+        "Data Scientist": "https://roadmap.sh/ai-data-scientist",
+        "Cloud Engineer": "https://roadmap.sh/aws",
+        "AI/ML Engineer": "https://roadmap.sh/ai-engineer",
+        "Cybersecurity Analyst": "https://roadmap.sh/cyber-security",
+        "UI/UX Designer": "https://roadmap.sh/ux-design"
+    };
+
     const [error, setError] = useState<string | null>(null);
 
     const fetchAnalysis = async (targetGoal: string) => {
@@ -110,24 +121,34 @@ const CareerPage = () => {
                         <div className="inline-flex p-1.5 rounded-2xl bg-secondary/50 border border-border backdrop-blur-md overflow-x-auto max-w-full hide-scrollbar">
                             <div className="flex gap-1.5 min-w-max">
                                 {goals.map((g) => (
-                                    <button
-                                        key={g}
-                                        onClick={() => handleGoalChange(g)}
-                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 relative ${
-                                            goal === g 
-                                            ? "text-white shadow-glow translate-y-[-1px]" 
-                                            : "text-muted-foreground hover:text-foreground hover:bg-white/5"
-                                        }`}
-                                    >
-                                        {goal === g && (
-                                            <motion.div
-                                                layoutId="activeGoal"
-                                                className="absolute inset-0 bg-primary rounded-xl z-0"
-                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                            />
-                                        )}
-                                        <span className="relative z-10">{g}</span>
-                                    </button>
+                                    <div key={g} className="flex items-center gap-1 group/item">
+                                        <button
+                                            onClick={() => handleGoalChange(g)}
+                                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 relative ${
+                                                goal === g 
+                                                ? "text-white shadow-glow translate-y-[-1px]" 
+                                                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                                            }`}
+                                        >
+                                            {goal === g && (
+                                                <motion.div
+                                                    layoutId="activeGoal"
+                                                    className="absolute inset-0 bg-primary rounded-xl z-0"
+                                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                                />
+                                            )}
+                                            <span className="relative z-10">{g}</span>
+                                        </button>
+                                        <a 
+                                            href={roadmapLinks[g]} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="h-6 w-6 rounded-lg bg-orange-500/10 flex items-center justify-center hover:bg-orange-500/20 transition-colors group-hover/item:opacity-100 opacity-40"
+                                            title={`Explore ${g} Roadmap`}
+                                        >
+                                            <ExternalLink className="h-3 w-3 text-orange-500" />
+                                        </a>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -342,7 +363,7 @@ const CareerPage = () => {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.3 + (i * 0.1) }}
-                                            className="rounded-2xl border border-border/50 p-5 bg-card/50 hover:bg-white/5 transition-all cursor-pointer group hover:border-primary/40 glass hover:shadow-glow-lg"
+                                            className="rounded-2xl border border-border/50 p-5 bg-card/50 transition-all group border-border/20 glass"
                                         >
                                             <div className="flex items-start gap-5">
                                                 <div className="h-14 w-14 rounded-2xl bg-secondary flex items-center justify-center text-3xl shadow-sm border border-border group-hover:scale-110 transition-transform duration-300">
@@ -350,10 +371,7 @@ const CareerPage = () => {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between gap-2">
-                                                        <h4 className="text-base font-black text-foreground truncate group-hover:text-primary transition-colors">{cert.title}</h4>
-                                                        <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-3 group-hover:translate-x-0">
-                                                            <ExternalLink className="h-4 w-4 text-primary" />
-                                                        </div>
+                                                        <h4 className="text-base font-black text-foreground truncate">{cert.title}</h4>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <span className="text-xs font-bold text-muted-foreground">{cert.platform}</span>
@@ -451,12 +469,13 @@ const CareerPage = () => {
                                             initial={{ opacity: 0, x: 10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: 0.5 + (i * 0.1) }}
-                                            className="rounded-2xl border border-border/50 p-5 bg-card/40 hover:bg-secondary/20 transition-all cursor-pointer group relative overflow-hidden"
+                                            onClick={() => comp.url && window.open(comp.url, '_blank')}
+                                            className={`rounded-2xl border border-border/50 p-5 bg-card/40 hover:bg-secondary/20 transition-all cursor-pointer group relative overflow-hidden ${!comp.url && 'pointer-events-none opacity-80'}`}
                                         >
                                             <div className="flex items-center justify-between mb-3">
                                                 <h4 className="text-base font-black text-foreground group-hover:text-primary transition-colors">{comp.title}</h4>
                                                 <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary transition-colors text-muted-foreground group-hover:text-white">
-                                                    <ChevronRight className="h-5 w-5" />
+                                                    {comp.url ? <ExternalLink className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-3 mb-4">

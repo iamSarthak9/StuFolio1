@@ -5,7 +5,7 @@ import api from "@/lib/api";
 
 const quickActions = [
     "How do I check my attendance?",
-    "Show me my AI analysis",
+    "Show me my AI Analytics",
     "How to link my LeetCode profile?",
     "Where can I see the leaderboard?",
 ];

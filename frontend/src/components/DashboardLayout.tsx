@@ -33,7 +33,7 @@ const studentNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: User, label: "My Profile", path: "/profile" },
   { icon: Trophy, label: "Leaderboard", path: "/leaderboard" },
-  { icon: Brain, label: "AI Analysis", path: "/ai-analysis" },
+  { icon: Brain, label: "AI Analytics", path: "/ai-analysis" },
   { icon: Calendar, label: "Calendar", path: "/calendar" },
   { icon: BookOpen, label: "Attendance", path: "/attendance" },
   { icon: Target, label: "Career & Skills", path: "/career" },
