@@ -262,41 +262,63 @@ export class AcademicSyncService {
                     const semesterData = await page.evaluate((semName) => {
                         const doc = (globalThis as any).document;
                         const tables = Array.from(doc.querySelectorAll("table")) as any[];
-                        const marksTable = tables.find(t => t.innerText.toLowerCase().includes("paper code") && t.innerText.toLowerCase().includes("total"));
                         
-                        if (!marksTable) return [];
+                        // DEBUG: log all table texts to help diagnose portal structure changes
+                        const tableTexts = tables.map((t: any, i: number) => `[${i}]: ${t.innerText.substring(0, 100).replace(/\n/g, ' ')}`);
+                        console.log('[Scraper] Tables found on page:', JSON.stringify(tableTexts));
+                        
+                        const marksTable = tables.find((t: any) => {
+                            const text = t.innerText.toLowerCase();
+                            return (text.includes("paper code") || text.includes("subject code") || text.includes("paper")) 
+                                && (text.includes("total") || text.includes("marks"));
+                        });
+                        
+                        if (!marksTable) return { rows: [], debug: tableTexts };
 
                         const rows = Array.from(marksTable.querySelectorAll("tr"));
+                        if (rows.length < 2) return { rows: [], debug: tableTexts };
                         const headers = Array.from((rows[0] as any).cells).map((c: any) => c.innerText.trim().toLowerCase());
+                        console.log('[Scraper] Table headers:', JSON.stringify(headers));
                         
-                        const codeIdx = headers.findIndex(h => h.includes("code"));
-                        const nameIdx = headers.findIndex(h => h.includes("paper name") || h.includes("subject"));
-                        const internalIdx = headers.findIndex(h => h.includes("internal"));
-                        const externalIdx = headers.findIndex(h => h.includes("external"));
-                        const totalIdx = headers.findIndex(h => h.includes("total"));
-                        const creditsIdx = headers.findIndex(h => h.includes("credit") || h.includes("cr"));
+                        const codeIdx = headers.findIndex((h: string) => h.includes("code"));
+                        const nameIdx = headers.findIndex((h: string) => h.includes("paper name") || h.includes("subject") || h.includes("name"));
+                        const internalIdx = headers.findIndex((h: string) => h.includes("internal"));
+                        const externalIdx = headers.findIndex((h: string) => h.includes("external"));
+                        const totalIdx = headers.findIndex((h: string) => h.includes("total") || h.includes("marks"));
+                        const creditsIdx = headers.findIndex((h: string) => h.includes("credit") || h.includes("cr"));
 
-                        const dataRows = rows.filter(r => {
+                        const dataRows = rows.slice(1).filter((r: any) => {
                             const cells = (r as any).cells;
-                            return cells.length >= 5 && !isNaN(parseInt(cells[0].innerText.trim()));
+                            if (cells.length < 3) return false;
+                            const firstCell = cells[0].innerText.trim();
+                            // Accept rows that start with a number OR have a subject-code-looking value
+                            return !isNaN(parseInt(firstCell)) || /^[A-Z]{2,}/.test(firstCell);
                         });
 
-                        return dataRows.map(row => {
-                            const cols = Array.from((row as any).cells).map((c: any) => c.innerText.trim());
-                            return {
-                                code: codeIdx !== -1 ? cols[codeIdx] : cols[1],
-                                name: nameIdx !== -1 ? cols[nameIdx] : cols[2], 
-                                internalMarks: internalIdx !== -1 ? parseFloat(cols[internalIdx]) || 0 : 0,
-                                externalMarks: externalIdx !== -1 ? parseFloat(cols[externalIdx]) || 0 : 0,
-                                marks: totalIdx !== -1 ? parseFloat(cols[totalIdx]) || 0 : 0,
-                                credits: creditsIdx !== -1 ? parseFloat(cols[creditsIdx]) || 4 : 4,
-                                semester: semName
-                            };
-                        });
+                        return {
+                            rows: dataRows.map((row: any) => {
+                                const cols = Array.from((row as any).cells).map((c: any) => c.innerText.trim());
+                                return {
+                                    code: codeIdx !== -1 ? cols[codeIdx] : cols[1],
+                                    name: nameIdx !== -1 ? cols[nameIdx] : cols[2], 
+                                    internalMarks: internalIdx !== -1 ? parseFloat(cols[internalIdx]) || 0 : 0,
+                                    externalMarks: externalIdx !== -1 ? parseFloat(cols[externalIdx]) || 0 : 0,
+                                    marks: totalIdx !== -1 ? parseFloat(cols[totalIdx]) || 0 : 0,
+                                    credits: creditsIdx !== -1 ? parseFloat(cols[creditsIdx]) || 4 : 4,
+                                    semester: semName
+                                };
+                            }),
+                            debug: tableTexts
+                        };
                     }, option.text);
+                    
+                    const parsedRows = (semesterData as any).rows || semesterData;
+                    if ((semesterData as any).debug) {
+                        console.log(`[Sync] Page debug for ${option.text} - tables:`, JSON.stringify((semesterData as any).debug));
+                    }
 
-                    console.log(`[Sync] Scraped ${semesterData.length} marks for ${option.text}.`);
-                    allScrapedData.push(...semesterData);
+                    console.log(`[Sync] Scraped ${parsedRows.length} marks for ${option.text}.`);
+                    allScrapedData.push(...parsedRows);
 
                     // Slight delay to be polite to the server
                     await new Promise(resolve => setTimeout(resolve, 500));
@@ -333,6 +355,7 @@ export class AcademicSyncService {
 
         // 2. Transact all subject upserts and record updates with a longer timeout
         await prisma.$transaction(async (tx) => {
+            console.log(`[Sync] Starting DB transaction for ${data.length} records...`);
             const subjectMap = new Map<string, string>();
 
             // Clean item codes first for consistent identification
@@ -396,31 +419,36 @@ export class AcademicSyncService {
                 semInfo.totalCredits += itemCredits;
 
                 // Upsert academic record
-                await tx.academicRecord.upsert({
-                    where: {
-                        studentId_subjectId_semester: {
+                try {
+                    await tx.academicRecord.upsert({
+                        where: {
+                            studentId_subjectId_semester: {
+                                studentId,
+                                subjectId,
+                                semester: item.semester
+                            }
+                        },
+                        create: {
                             studentId,
                             subjectId,
-                            semester: item.semester
+                            internalMarks: item.internalMarks,
+                            externalMarks: item.externalMarks,
+                            marks: item.marks,
+                            grade: letterGrade,
+                            semester: item.semester,
+                            maxMarks: 100
+                        },
+                        update: {
+                            internalMarks: item.internalMarks,
+                            externalMarks: item.externalMarks,
+                            marks: item.marks,
+                            grade: letterGrade
                         }
-                    },
-                    create: {
-                        studentId,
-                        subjectId,
-                        internalMarks: item.internalMarks,
-                        externalMarks: item.externalMarks,
-                        marks: item.marks,
-                        grade: letterGrade,
-                        semester: item.semester,
-                        maxMarks: 100
-                    },
-                    update: {
-                        internalMarks: item.internalMarks,
-                        externalMarks: item.externalMarks,
-                        marks: item.marks,
-                        grade: letterGrade
-                    }
-                });
+                    });
+                } catch (upsertErr: any) {
+                    console.error(`[Sync] UPSERT FAILED for subject ${item.code} (${item.semester}):`, upsertErr?.message || upsertErr);
+                    throw upsertErr;
+                }
             }
 
             // 4. Update Semester CGPAs and calculate overall CGPA (DISABLED for now as requested)
