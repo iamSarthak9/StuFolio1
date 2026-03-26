@@ -9,15 +9,21 @@ const router = Router();
 const roleBenchmarks: Record<string, any> = {
     "Full Stack Developer": {
         skills: ["React", "Node.js", "PostgreSQL", "TypeScript", "Docker", "AWS"],
-        certs: [{ title: "Meta Full Stack Engineer", platform: "Coursera", icon: "💻" }]
+        certs: [{ title: "Meta Full Stack Engineer", platform: "Coursera", icon: "💻", relevance: "Critical", time: "6 Months" }],
+        projects: [{ title: "E-Commerce Microservices", description: "A scalable e-commerce platform with decoupled services for payments, inventory, and auth.", skills: ["Node.js", "Docker", "Redis"], impact: "High" }],
+        competitions: [{ title: "Smart India Hackathon", type: "National", date: "Annual", difficulty: "Hard", url: "https://www.sih.gov.in/" }]
     },
     "Data Scientist": {
         skills: ["Python", "TensorFlow", "Pandas", "SQL", "Statistics"],
-        certs: [{ title: "Google Data Analytics", platform: "Coursera", icon: "📊" }]
+        certs: [{ title: "Google Data Analytics", platform: "Coursera", icon: "📊", relevance: "High", time: "4 Months" }],
+        projects: [{ title: "Predictive Health Analytics", description: "ML model to predict patient readmission rates using historical clinical data.", skills: ["Python", "Scikit-Learn", "FastAPI"], impact: "High" }],
+        competitions: [{ title: "Kaggle Grand Prix", type: "Global", date: "Quarterly", difficulty: "Hard", url: "https://www.kaggle.com/competitions" }]
     },
     "Backend Developer": {
         skills: ["Java", "Spring Boot", "MySQL", "System Design", "Redis"],
-        certs: [{ title: "Spring Certified Professional", platform: "Pivotal", icon: "☕" }]
+        certs: [{ title: "Spring Certified Professional", platform: "Pivotal", icon: "☕", relevance: "Critical", time: "5 Months" }],
+        projects: [{ title: "Real-time Chat Engine", description: "High-throughput messaging system with WebSockets and distributed caching.", skills: ["Java", "Redis", "Kafka"], impact: "High" }],
+        competitions: [{ title: "ICPC World Finals", type: "Elite", date: "Annual", difficulty: "Hard", url: "https://icpc.global/" }]
     }
 };
 
@@ -112,14 +118,20 @@ Be precise and professional.`;
         } catch (aiError) {
             console.error("[Career] AI failed, falling back to deterministic logic:", aiError);
             const academicScore = Math.min((student.cgpa / 10) * 100, 100);
-            const codingScore = Math.min(student.codingProfiles.length * 20, 100); // Simple estimate for fallback
+            const codingScore = Math.min(student.codingProfiles.length * 20, 100); 
             const placementScore = Math.round((codingScore * 0.55) + (academicScore * 0.45));
-
+            
+            const benchmark = roleBenchmarks[targetGoal] || roleBenchmarks["Full Stack Developer"];
+            
             return res.json({
                 placementScore: Math.min(placementScore, 95),
-                skillGap: (roleBenchmarks[targetGoal]?.skills || []).map((s: string) => ({ skill: s, student: 40, industry: 90 })),
-                recommendations: { certifications: [], projects: [], competitions: [] },
-                summary: "Our AI coach is resting. Here is a basic estimate based on your CGPA and badges."
+                skillGap: benchmark.skills.map((s: string) => ({ skill: s, student: 40, industry: 90 })),
+                recommendations: { 
+                    certifications: benchmark.certs, 
+                    projects: benchmark.projects, 
+                    competitions: benchmark.competitions 
+                },
+                summary: "Our AI coach is resting. Here is a basic estimate and industry-standard roadmap based on your current stats."
             });
         }
 
