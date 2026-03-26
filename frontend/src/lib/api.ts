@@ -56,6 +56,17 @@ export interface Event {
     location?: string;
 }
 
+export interface CareerAnalysis {
+    placementScore: number;
+    skillGap: { skill: string; student: number; industry: number }[];
+    recommendations: {
+        certifications: { title: string; platform: string; relevance: string; time: string; icon: string }[];
+        projects: { title: string; description: string; skills: string[]; impact: string }[];
+        competitions: { title: string; type: string; date: string; difficulty: string }[];
+    };
+    summary: string;
+}
+
 class ApiClient {
     private token: string | null = null;
 
@@ -216,6 +227,11 @@ class ApiClient {
 
     getAIAnalysis() {
         return this.request<unknown>("/analysis/me");
+    }
+
+    getCareerAnalysis(goal?: string) {
+        const query = goal ? `?goal=${encodeURIComponent(goal)}` : "";
+        return this.request<CareerAnalysis>(`/career/analysis${query}`);
     }
 
     chatWithBot(message: string, context?: any) {

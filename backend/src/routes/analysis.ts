@@ -7,6 +7,7 @@ const router = Router();
 
 // In-memory cache for analysis (valid for 5 minutes)
 const analysisCache = new Map<string, { data: any, timestamp: number }>();
+const pendingRequests = new Map<string, Promise<any>>();
 
 // GET /api/analysis/me — Get AI-driven performance analysis
 router.get("/me", authenticateToken, requireRole("STUDENT", "student"), async (req: AuthRequest, res: Response) => {
@@ -115,13 +116,35 @@ Return a JSON object strictly containing EXACTLY two arrays:
         let insights: any[] = [];
         
         try {
-            const model = getGeminiModel("gemini-1.5-flash");
-            const result = await generateWithRetry(model, systemInstruction + "\n\nStudent Data:\n" + JSON.stringify(promptContext));
-            const responseText = result.response.text();
-            let cleanedText = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
-            const aiData = JSON.parse(cleanedText);
-            suggestions = aiData.suggestions || [];
-            insights = aiData.insights || [];
+            // Check if there's already a request pending for this student
+            if (pendingRequests.has(studentId)) {
+                console.log(`[Analysis] Coalescing concurrent request for ${studentId}`);
+                const aiResult = await pendingRequests.get(studentId);
+                suggestions = aiResult.suggestions;
+                insights = aiResult.insights;
+            } else {
+                // Create a new pending request
+                const aiPromise = (async () => {
+                    const model = getGeminiModel("gemini-2.0-flash");
+                    const result = await generateWithRetry(model, systemInstruction + "\n\nStudent Data:\n" + JSON.stringify(promptContext));
+                    const responseText = result.response.text();
+                    let cleanedText = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+                    const aiData = JSON.parse(cleanedText);
+                    return {
+                        suggestions: aiData.suggestions || [],
+                        insights: aiData.insights || []
+                    };
+                })();
+
+                pendingRequests.set(studentId, aiPromise);
+                try {
+                    const aiResult = await aiPromise;
+                    suggestions = aiResult.suggestions;
+                    insights = aiResult.insights;
+                } finally {
+                    pendingRequests.delete(studentId);
+                }
+            }
         } catch (e: any) {
             console.error("[Analysis] AI generation failed:", e.message);
             suggestions = [{ title: "AI Temporarily Unavailable", description: "Google's AI servers are a bit busy. Basic suggestions enabled.", icon: "AlertTriangle", priority: "low", color: "text-blue-500 bg-blue-500/20" }];

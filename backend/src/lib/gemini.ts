@@ -1,12 +1,18 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const apiKey = process.env.GEMINI_API_KEY || "";
+if (apiKey) {
+    console.log(`[Gemini] Initialized with key: ${apiKey.substring(0, 6)}...${apiKey.substring(apiKey.length - 4)}`);
+} else {
+    console.warn("[Gemini] API key is missing!");
+}
+const genAI = new GoogleGenerativeAI(apiKey);
 
-export const getGeminiModel = (modelName: string = "gemini-1.5-flash") => {
+export const getGeminiModel = (modelName: string = "gemini-2.0-flash") => {
     return genAI.getGenerativeModel({ model: modelName });
 };
 
-export async function generateWithRetry(model: any, prompt: string, maxRetries = 2, delay = 2000) {
+export async function generateWithRetry(model: any, prompt: string, maxRetries = 5, delay = 5000) {
     let lastError: any;
     for (let i = 0; i < maxRetries; i++) {
         try {

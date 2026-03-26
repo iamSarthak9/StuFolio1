@@ -11,6 +11,7 @@ import eventRoutes from "./routes/events";
 import notificationRoutes from "./routes/notifications";
 import analysisRoutes from "./routes/analysis";
 import chatRoutes from "./routes/chat";
+import careerRoutes from "./routes/career";
 import { AcademicSyncService } from "./services/academicSyncService";
 
 const app = express();
@@ -55,6 +56,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/analysis", analysisRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/career", careerRoutes);
 
 // Start server
 app.listen(PORT, async () => {
