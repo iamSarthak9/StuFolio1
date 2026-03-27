@@ -353,132 +353,89 @@ export class AcademicSyncService {
     private static async updateDatabaseWithScrapedData(studentId: string, data: any[]) {
         console.log(`[Sync] Updating database with ${data.length} records for student ${studentId}...`);
 
-        // 2. Transact all subject upserts and record updates with a longer timeout
+        // Use transaction for atomicity with batch operations
         await prisma.$transaction(async (tx) => {
-            console.log(`[Sync] Starting DB transaction for ${data.length} records...`);
-            const subjectMap = new Map<string, string>();
+            console.log(`[Sync] Starting optimized DB transaction for ${data.length} records...`);
 
             // Clean item codes first for consistent identification
             for (const item of data) {
                 item.code = item.code.replace(/-/g, "").trim().toUpperCase();
             }
 
-            // Re-calculate unique subjects after cleaning
-            const uniqueSubjects = Array.from(new Map(data.map(item => [item.code, item])).values());
-
-            console.log(`[Sync] Upserting ${uniqueSubjects.length} unique subjects...`);
-
-            // Upsert all subjects first
-            for (const item of uniqueSubjects) {
-                const syllabusInfo = (syllabusCredits as any[]).find(s => 
-                    s.code.replace(/-/g, "").toUpperCase() === item.code
-                );
-                const finalCredits = syllabusInfo ? syllabusInfo.credits : (item.credits || 4);
-                const finalName = syllabusInfo ? syllabusInfo.name : item.name;
-
-                const sub = await tx.subject.upsert({
-                    where: { code: item.code },
-                    create: {
-                        code: item.code,
-                        name: finalName,
-                        credits: finalCredits,
-                        semester: item.semester
-                    },
-                    update: {
-                        name: finalName,
-                        credits: finalCredits,
-                        semester: item.semester
-                    }
-                });
-                subjectMap.set(item.code, sub.id);
-            }
-
-            // 3. Prepare SGPA calculation in memory
-            const semDataMap = new Map<string, { totalPoints: number; totalCredits: number; records: any[] }>();
-
-            console.log(`[Sync] Processing marks for academic records...`);
-
-            for (const item of data) {
-                const subjectId = subjectMap.get(item.code)!;
-                
-                // Lookup credits AGAIN for the CGPA calculation to be absolutely sure
-                const syllabusInfo = (syllabusCredits as any[]).find(s => 
-                    s.code.replace(/-/g, "").toUpperCase() === item.code
-                );
-                const itemCredits = syllabusInfo ? syllabusInfo.credits : (item.credits || 4);
-                
-                const gp = this.getGradePoint(item.marks);
-                const letterGrade = this.getLetterGrade(item.marks);
-
-                // Add to semester calculation (MOCKED for now as requested)
-                if (!semDataMap.has(item.semester)) {
-                    semDataMap.set(item.semester, { totalPoints: 0, totalCredits: 0, records: [] });
-                }
-                const semInfo = semDataMap.get(item.semester)!;
-                semInfo.totalPoints += (gp * itemCredits);
-                semInfo.totalCredits += itemCredits;
-
-                // Upsert academic record
-                try {
-                    await tx.academicRecord.upsert({
-                        where: {
-                            studentId_subjectId_semester: {
-                                studentId,
-                                subjectId,
-                                semester: item.semester
-                            }
-                        },
-                        create: {
-                            studentId,
-                            subjectId,
-                            internalMarks: item.internalMarks,
-                            externalMarks: item.externalMarks,
-                            marks: item.marks,
-                            grade: letterGrade,
-                            semester: item.semester,
-                            maxMarks: 100
-                        },
-                        update: {
-                            internalMarks: item.internalMarks,
-                            externalMarks: item.externalMarks,
-                            marks: item.marks,
-                            grade: letterGrade
-                        }
-                    });
-                } catch (upsertErr: any) {
-                    console.error(`[Sync] UPSERT FAILED for subject ${item.code} (${item.semester}):`, upsertErr?.message || upsertErr);
-                    throw upsertErr;
-                }
-            }
-
-            // 4. Update Semester CGPAs and calculate overall CGPA (DISABLED for now as requested)
-            /*
-            const sgpaValues: number[] = [];
-            console.log(`[Sync] Calculating SGPA for ${semDataMap.size} semesters...`);
-            for (const [sem, info] of semDataMap.entries()) {
-                const sgpa = info.totalCredits > 0 ? info.totalPoints / info.totalCredits : 0;
-                sgpaValues.push(sgpa);
-
-                await tx.semesterCGPA.upsert({
-                    where: { studentId_semester: { studentId, semester: sem } },
-                    create: { studentId, semester: sem, cgpa: Number(sgpa.toFixed(2)) },
-                    update: { cgpa: Number(sgpa.toFixed(2)) }
-                });
-            }
-
-            // 5. Update overall student CGPA
-            const newCGPA = sgpaValues.length > 0 
-                ? sgpaValues.reduce((sum, val) => sum + val, 0) / sgpaValues.length 
-                : 0;
-
-            await tx.student.update({
-                where: { id: studentId },
-                data: { cgpa: Number(newCGPA.toFixed(2)) }
+            // 1. Bulk Process Subjects
+            const uniqueSubjectsData = Array.from(new Map(data.map(item => [item.code, item])).values());
+            const subjectCodes = uniqueSubjectsData.map(s => s.code);
+            
+            // Find existing subjects to avoid duplicates
+            const existingSubjects = await tx.subject.findMany({
+                where: { code: { in: subjectCodes } },
+                select: { id: true, code: true }
             });
-            */
+            const existingCodes = new Set(existingSubjects.map(s => s.code));
+            
+            const subjectsToCreate = uniqueSubjectsData
+                .filter(s => !existingCodes.has(s.code))
+                .map(item => {
+                    const syllabusInfo = (syllabusCredits as any[]).find(s => 
+                        s.code.replace(/-/g, "").toUpperCase() === item.code
+                    );
+                    return {
+                        code: item.code,
+                        name: syllabusInfo ? syllabusInfo.name : item.name,
+                        credits: syllabusInfo ? syllabusInfo.credits : (item.credits || 4),
+                        semester: item.semester
+                    };
+                });
+
+            if (subjectsToCreate.length > 0) {
+                console.log(`[Sync] Batch creating ${subjectsToCreate.length} new subjects...`);
+                await tx.subject.createMany({ data: subjectsToCreate, skipDuplicates: true });
+            }
+
+            // Map codes to IDs for all subjects
+            const allRelevantSubjects = await tx.subject.findMany({
+                where: { code: { in: subjectCodes } },
+                select: { id: true, code: true }
+            });
+            const subjectMap = new Map(allRelevantSubjects.map(s => [s.code, s.id]));
+
+            // 2. Bulk Process Academic Records
+            // To perform a batch "upsert", we delete existing matching records and createMany new ones.
+            const semesters = Array.from(new Set(data.map(item => item.semester)));
+            const subjectIds = Array.from(subjectMap.values());
+
+            console.log(`[Sync] Cleaning existing records for sync...`);
+            await tx.academicRecord.deleteMany({
+                where: {
+                    studentId,
+                    semester: { in: semesters },
+                    subjectId: { in: subjectIds }
+                }
+            });
+
+            const recordsToCreate = data.map(item => {
+                const subjectId = subjectMap.get(item.code)!;
+                const letterGrade = this.getLetterGrade(item.marks);
+                return {
+                    studentId,
+                    subjectId,
+                    internalMarks: item.internalMarks,
+                    externalMarks: item.externalMarks,
+                    marks: item.marks,
+                    grade: letterGrade,
+                    semester: item.semester,
+                    maxMarks: 100
+                };
+            });
+
+            if (recordsToCreate.length > 0) {
+                console.log(`[Sync] Batch creating ${recordsToCreate.length} academic records...`);
+                await tx.academicRecord.createMany({ data: recordsToCreate });
+            }
+
             console.log(`[Sync] Student CGPA update skipped as requested.`);
         }, {
-            timeout: 60000 // 60 seconds timeout for large data sync
+            timeout: 60000 // 60 seconds timeout
         });
 
         console.log(`[Sync] Database update complete for ${studentId}.`);

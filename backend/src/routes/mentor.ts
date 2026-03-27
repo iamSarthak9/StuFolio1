@@ -15,25 +15,35 @@ router.get("/dashboard", authenticateToken, requireRole("MENTOR"), async (req: A
 
         if (!mentor) return res.status(404).json({ error: "Mentor profile not found" });
 
-        // Get all students in mentor's section
+        // Get all students in mentor's section first (needed for the table and some complex mapping)
         const students = await prisma.student.findMany({
             where: { section: mentor.section },
             include: {
                 user: { select: { name: true, avatarUrl: true } },
-                attendances: { include: { subject: true } },
-                codingProfiles: true,
+                attendances: { select: { attended: true, total: true } },
+                codingProfiles: { select: { stats: true } },
             },
             orderBy: { enrollment: 'asc' },
         });
 
         const totalStudents = students.length;
 
-        // At-risk students (attendance below 75% in any subject)
-        const atRiskStudents = students.filter((s) =>
-            s.attendances.some((a) => (a.attended / a.total) * 100 < 75)
-        );
+        // Optimized Stats using DB Aggregations
+        const [aggStats, cgpaGroups] = await Promise.all([
+            prisma.student.aggregate({
+                where: { section: mentor.section },
+                _avg: { cgpa: true },
+            }),
+            prisma.student.groupBy({
+                by: ['cgpa'],
+                where: { section: mentor.section },
+                _count: { _all: true },
+            })
+        ]);
 
-        // CGPA distribution
+        const avgCGPA = aggStats._avg.cgpa?.toFixed(2) || "0";
+
+        // Map CGPA distribution
         const cgpaRanges = [
             { range: "Below 6", count: 0 },
             { range: "6-7", count: 0 },
@@ -41,7 +51,7 @@ router.get("/dashboard", authenticateToken, requireRole("MENTOR"), async (req: A
             { range: "8-9", count: 0 },
             { range: "9+", count: 0 },
         ];
-        students.forEach((s) => {
+        students.forEach(s => {
             if (s.cgpa < 6) cgpaRanges[0].count++;
             else if (s.cgpa < 7) cgpaRanges[1].count++;
             else if (s.cgpa < 8) cgpaRanges[2].count++;
@@ -49,38 +59,33 @@ router.get("/dashboard", authenticateToken, requireRole("MENTOR"), async (req: A
             else cgpaRanges[4].count++;
         });
 
-        // Attendance distribution
-        const aboveThreshold = students.filter((s) => {
-            const totalAtt = s.attendances.reduce((sum, a) => sum + a.attended, 0);
-            const totalClasses = s.attendances.reduce((sum, a) => sum + a.total, 0);
-            return totalClasses > 0 && (totalAtt / totalClasses) * 100 >= 85;
-        }).length;
+        // Attendance distribution and At-Risk count
+        let above85 = 0;
+        let between75And85 = 0;
+        let below75 = 0;
+        let atRiskCount = 0;
 
-        const nearThreshold = students.filter((s) => {
-            const totalAtt = s.attendances.reduce((sum, a) => sum + a.attended, 0);
-            const totalClasses = s.attendances.reduce((sum, a) => sum + a.total, 0);
-            const pct = totalClasses > 0 ? (totalAtt / totalClasses) * 100 : 0;
-            return pct >= 75 && pct < 85;
-        }).length;
-
-        const belowThreshold = totalStudents - aboveThreshold - nearThreshold;
-
-        // Average CGPA
-        const avgCGPA = totalStudents > 0
-            ? (students.reduce((sum, s) => sum + s.cgpa, 0) / totalStudents).toFixed(2)
-            : "0";
-
-        // Student list for table
         const studentList = students.map((s) => {
+            // Process coding stats
             const totalProblems = s.codingProfiles.reduce((sum, cp) => {
-                const stats = JSON.parse(cp.stats) as { label: string; value: string }[];
-                const solved = stats.find((st) => st.label.toLowerCase().includes("solved"));
-                return sum + (solved ? parseInt(solved.value.replace(/,/g, "")) || 0 : 0);
+                try {
+                    const stats = JSON.parse(cp.stats) as { label: string; value: string }[];
+                    const solved = stats.find((st) => st.label.toLowerCase().includes("solved"));
+                    return sum + (solved ? parseInt(solved.value.replace(/,/g, "")) || 0 : 0);
+                } catch { return sum; }
             }, 0);
 
-            const totalAtt = s.attendances.reduce((sum, a) => sum + a.attended, 0);
-            const totalClasses = s.attendances.reduce((sum, a) => sum + a.total, 0);
-            const attPct = totalClasses > 0 ? Math.round((totalAtt / totalClasses) * 100) : 0;
+            // Process attendance stats
+            const studentTotalAtt = s.attendances.reduce((sum, a) => sum + a.attended, 0);
+            const studentTotalClasses = s.attendances.reduce((sum, a) => sum + a.total, 0);
+            const attPct = studentTotalClasses > 0 ? Math.round((studentTotalAtt / studentTotalClasses) * 100) : 0;
+            
+            const isAtRisk = s.attendances.some((a) => a.total > 0 && (a.attended / a.total) * 100 < 75);
+            if (isAtRisk) atRiskCount++;
+
+            if (attPct >= 85) above85++;
+            else if (attPct >= 75) between75And85++;
+            else below75++;
 
             return {
                 id: s.id,
@@ -97,15 +102,15 @@ router.get("/dashboard", authenticateToken, requireRole("MENTOR"), async (req: A
         return res.json({
             stats: {
                 totalStudents,
-                atRiskCount: atRiskStudents.length,
+                atRiskCount,
                 averageCGPA: avgCGPA,
                 section: mentor.section,
             },
             cgpaDistribution: cgpaRanges,
             attendanceDistribution: [
-                { name: "Above 85%", value: aboveThreshold, color: "hsl(160, 84%, 39%)" },
-                { name: "75-85%", value: nearThreshold, color: "hsl(217, 91%, 60%)" },
-                { name: "Below 75%", value: belowThreshold, color: "hsl(0, 72%, 51%)" },
+                { name: "Above 85%", value: above85, color: "hsl(160, 84%, 39%)" },
+                { name: "75-85%", value: between75And85, color: "hsl(217, 91%, 60%)" },
+                { name: "Below 75%", value: below75, color: "hsl(0, 72%, 51%)" },
             ],
             students: studentList,
         });
@@ -385,12 +390,37 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
 
         // Transaction with extended timeout
         await (prisma as any).$transaction(async (tx: any) => {
-            const operations: Promise<any>[] = [];
+            // 1. Batch delete existing DailyAttendance for these students/date
+            // We only delete records that are being updated or set to NO_CLASS
+            const keysToProcess = records.map((r: any) => `${r.studentId}_${r.subjectId}`);
+            
+            await tx.dailyAttendance.deleteMany({
+                where: {
+                    studentId: { in: studentIds },
+                    date: attendanceDate,
+                    subjectId: { in: Array.from(new Set(records.map((r: any) => r.subjectId))) }
+                }
+            });
 
+            // 2. Batch create new DailyAttendance (excluding NO_CLASS)
+            const dailyToCreate = records
+                .filter((r: any) => r.status !== "NO_CLASS" && studentIds.includes(r.studentId))
+                .map((r: any) => ({
+                    studentId: r.studentId,
+                    subjectId: r.subjectId,
+                    date: attendanceDate,
+                    status: r.status,
+                    mentorId: mentor.id
+                }));
+
+            if (dailyToCreate.length > 0) {
+                await tx.dailyAttendance.createMany({ data: dailyToCreate });
+            }
+
+            // 3. Update Summaries
+            const summaryOperations: Promise<any>[] = [];
             for (const record of records) {
                 const { studentId, subjectId, status } = record;
-
-                // Security check: only allow updating students in mentor's section
                 if (!studentIds.includes(studentId)) continue;
 
                 const key = `${studentId}_${subjectId}`;
@@ -400,20 +430,6 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
 
                 if (oldStatus === newStatus) continue;
 
-                // Update DailyAttendance
-                if (newStatus === "NO_CLASS") {
-                    if (existing) {
-                        operations.push(tx.dailyAttendance.delete({ where: { id: (existing as any).id } }));
-                    }
-                } else {
-                    operations.push(tx.dailyAttendance.upsert({
-                        where: { studentId_subjectId_date: { studentId, subjectId, date: attendanceDate } },
-                        create: { studentId, subjectId, date: attendanceDate, status: newStatus, mentorId: mentor.id },
-                        update: { status: newStatus }
-                    }));
-                }
-
-                // Update Summary
                 const updateData: any = {};
                 let createData = { studentId, subjectId, total: 1, attended: 0 };
 
@@ -432,7 +448,7 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
                 }
 
                 if (Object.keys(updateData).length > 0) {
-                    operations.push(tx.attendance.upsert({
+                    summaryOperations.push(tx.attendance.upsert({
                         where: { studentId_subjectId: { studentId, subjectId } },
                         create: createData,
                         update: updateData
@@ -440,12 +456,11 @@ router.post("/attendance/day", authenticateToken, requireRole("MENTOR"), async (
                 }
             }
 
-            // Execute all batched operations concurrently
-            if (operations.length > 0) {
-                await Promise.all(operations);
+            if (summaryOperations.length > 0) {
+                await Promise.all(summaryOperations);
             }
         }, {
-            timeout: 60000 // 60 seconds timeout for bulk operations
+            timeout: 60000 // 60 seconds timeout
         });
 
         return res.json({ success: true });
@@ -515,44 +530,43 @@ router.get("/analytics", authenticateToken, requireRole("MENTOR"), async (req: A
 
         if (!mentor) return res.status(404).json({ error: "Mentor not found" });
 
-        const students = await prisma.student.findMany({
-            where: { section: mentor.section },
-            include: {
-                semesterCGPAs: { orderBy: { semester: "asc" } },
-                attendances: { include: { subject: true } },
-                academicRecords: { include: { subject: true } },
-            },
+        // Optimized Performance bands using DB count
+        const [excellent, good, average, belowAverage, poor, totalCount] = await Promise.all([
+            prisma.student.count({ where: { section: mentor.section, cgpa: { gte: 9 } } }),
+            prisma.student.count({ where: { section: mentor.section, cgpa: { gte: 8, lt: 9 } } }),
+            prisma.student.count({ where: { section: mentor.section, cgpa: { gte: 7, lt: 8 } } }),
+            prisma.student.count({ where: { section: mentor.section, cgpa: { gte: 6, lt: 7 } } }),
+            prisma.student.count({ where: { section: mentor.section, cgpa: { lt: 6 } } }),
+            prisma.student.count({ where: { section: mentor.section } }),
+        ]);
+
+        const bands = { excellent, good, average, belowAverage, poor };
+
+        // Optimized Subject-wise averages using DB groupBy
+        const subjectAveragesData = await prisma.academicRecord.groupBy({
+            by: ['subjectId'],
+            where: { student: { section: mentor.section } },
+            _avg: { marks: true },
         });
 
-        // Performance bands
-        const bands = {
-            excellent: students.filter((s) => s.cgpa >= 9).length,
-            good: students.filter((s) => s.cgpa >= 8 && s.cgpa < 9).length,
-            average: students.filter((s) => s.cgpa >= 7 && s.cgpa < 8).length,
-            belowAverage: students.filter((s) => s.cgpa >= 6 && s.cgpa < 7).length,
-            poor: students.filter((s) => s.cgpa < 6).length,
-        };
-
-        // Subject-wise average marks
-        const subjectAverages: Record<string, { total: number; count: number; name: string }> = {};
-        students.forEach((s) => {
-            s.academicRecords.forEach((r) => {
-                if (!subjectAverages[r.subject.code]) {
-                    subjectAverages[r.subject.code] = { total: 0, count: 0, name: r.subject.name };
-                }
-                subjectAverages[r.subject.code].total += r.marks;
-                subjectAverages[r.subject.code].count++;
-            });
+        // Fetch subject details for the grouped IDs
+        const subjects = await prisma.subject.findMany({
+            where: { id: { in: subjectAveragesData.map(a => a.subjectId) } },
+            select: { id: true, name: true, code: true }
         });
+        const subjectMap = new Map(subjects.map(s => [s.id, s]));
 
-        const subjectStats = Object.entries(subjectAverages).map(([code, data]) => ({
-            code,
-            name: data.name,
-            average: Number((data.total / data.count).toFixed(1)),
-        }));
+        const subjectStats = subjectAveragesData.map(a => {
+            const sub = subjectMap.get(a.subjectId);
+            return {
+                code: sub?.code || "N/A",
+                name: sub?.name || "Unknown",
+                average: Number((a._avg.marks || 0).toFixed(1)),
+            };
+        });
 
         return res.json({
-            totalStudents: students.length,
+            totalStudents: totalCount,
             performanceBands: bands,
             subjectAverages: subjectStats,
         });
